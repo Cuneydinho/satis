@@ -1,0 +1,1 @@
+E-ticaret entegrasyonu program yazılımı için Yapay zeka araçlarına bilgi sağlama dosyalarıdır. E-ticaret Platformlarının api kaynaklarını barındırır, bu kaynağı referans göstererek platformları aramak yerine her bir her bir platformun kendine ait api postman dosyalarına kaynajk gösterebilmektesiniz. 
