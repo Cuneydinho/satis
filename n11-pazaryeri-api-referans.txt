@@ -1,0 +1,3443 @@
+Toplama Talebi Oluşturma (CollectionRequest)
+
+PUT https://api.n11.com/rest/delivery/v1/collectionRequest
+
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+İsteğinizi json formatında body de raw olarak ve aşağıdaki örnek desende iletiniz.
+HTTP isteğinizi ‘PUT’ methoduyla ilgili endpoint'e gönderin.
+Dikkat Edilmesi Gerekenler:
+
+GetShipmentPackages servisinden statüsü Picking dönen itemler için bu servisten toplama talebi oluşturabilirsiniz.
+orderLineId parametresinde gönderilecek değer için GetShipmentPackages servisinden dönen orderLineId alanı baz alınmalıdır.
+Bu servisten lojistik firma gönderileri için işlem sağlayabilirsiniz.
+Request içerisinde paketteki tüm sipariş kalemleri için istek gönderilmelidir, eksik ya da hatalı gönderildiğinde "Eksik ya da uygun olmayan sipariş öğesi bulunmaktadır." hatası alınacaktır.
+Parametre	Parametre Değer	Açıklama
+id	 	Paket / Kampanya kodu
+orderLineId	 	Talep oluşturulacak item Id bilgisi
+boxQuantity	 	Koli adedi
+desi	 	Toplam desi
+shipmentCompany	Horoz Lojistik : HLZ
+Ceva Lojistik : CEVA
+Ceva Tedarik Zinciri (Borusan) : BL	Kargo firma bilgisi kısa kodu gönderilmelidir.
+Örnek Request
+PUT https://api.n11.com/rest/delivery/v1/collectionRequest
+
+
+{
+    "collectionRequestDetails": [
+        {
+            "id": "112745617962209",
+            "orderLineId": 471150189,
+            "boxQuantity": 1,
+            "desi": 100,
+            "shipmentCompany": "HLZ"
+        },
+        {
+            "id": "112745617962209",
+            "orderLineId": 471150188,
+            "boxQuantity": 1,
+            "desi": 60,
+            "shipmentCompany": "HLZ"
+        }
+    ]
+}
+Örnek Response
+
+{
+    "code": 200,
+    "message": "success"
+}
+
+Ürün Güncelleme
+Bu sayfada temel ürün bilgileri, ürün güvenliği bilgileri ve besin değerleri özelliklerinin güncelleme bilgilerine ulaşabilirsiniz. 
+
+Servise yapılan her başarılı istek için response’ta ID (taskId) değeri dönmektedir. TaskDetails servisi üzerinden yapılan işlemin kontrolü sağlanabilir.
+
+
+Ürün Bilgisi Güncelleme (UpdateProduct)
+POST https://api.n11.com/ms/product/tasks/product-update
+Bu servisi kullanarak ürün bilgilerinizi güncelleyebilirsiniz.
+
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+Tek seferde maximum 1000 sku için güncelleme atabilirsiniz.
+İsteğinizi json formatında body de raw olarak iletmeniz gerekir.
+HTTP isteğinizi 'POST' methoduyla ilgili endpoint'e gönderin.
+JSON dosyanızı iletilen örnek desen formatında hazırlayın.
+ 
+Dikkat Edilmesi Gerekenler;
+
+Ürün gruplaması yapmak için productMainId değeri iletilmelidir, bu parametreden gönderilen değer ile güncelleme sağlayabilirsiniz.
+productMainId değeri silinmek isteniyorsa deleteProductMainId değeri True aktarılmalıdır, False gönderildiği durumda silinmeyecektir.
+Ürün maximum satış adedi maxPurchaseQuantity parametresi ile iletilmelidir, bu parametreden gönderilen değer ile güncelleme sağlayabilirsiniz.
+Ürün maximum satış adedi değerinin silinmesi için deleteMaxPurchaseQuantity parametresi True aktarılmalıdır, False gönderildiği durumda silinmeyecektir. True gönderildiği durumda satın alım adet sınırı olmadığı kabul edilecektir.
+Stok kodu bazında attributes alanında güncellenecek ürün güvenliği attribute değerlerini göndermeniz gerekir, ürün temel özellikleri (Marka, Renk, Beden vb.) n11 tarafından güncellenebilmektedir.
+Güncelleme yapılacak attribute bilgilerine CategoryAttributesList servisimizden ve aşağıda yer alan "Ürün Güvenliği Bilgileri ve Besin Değerleri" tablosundan ulaşabilirsiniz.
+GetCategoryAttributesList servisinden customValue>false dönen ürün özelliği için yine aynı servisten dönen valueId değeri ile yazılmalıdır. Bu değerler sadece n11 değerleri kullanılır anlamına gelir. customValue>true döner ise free değer iletebilirsiniz.
+ 
+
+Örnek Request;
+ 
+
+
+{
+    "payload": {
+        "integrator": "Entegratör İsmini yazabilirsiniz",
+        "skus": [
+            {
+                "stockCode": "xyz-1",
+                "status": "Active",
+                "preparingDay": 3,
+                "shipmentTemplate": "STANDART",
+                "deleteProductMainId": true,
+                "productMainId": "ea_v_xyz",
+                "deleteMaxPurchaseQuantity": false,
+                "maxPurchaseQuantity": 3,
+                "description": "Test Ürün Açıklaması",
+                "vatRate": 10,
+                "attributes": [
+                    {
+                        "id": 1000000,
+                        "valueId": null,
+                        "customValue": "Test Mağazacılık A.Ş."
+                    },
+                    {
+                        "id": 1000004,
+                        "valueId": 2000001,
+                        "customValue": null
+                    }
+                ]
+            }
+        ]
+    }
+}
+    
+
+Parametre	Zorunluluk	Açıklama	Tip
+integrator	Evet	Entegratör ve API kullanıcısının verilebilecek özel ismi. Tüm gönderimlerinizde aynı değer kullanmanızı rica ederiz.	string
+stockCode	Evet	Tedarikçinin ürüne belirlediği uniq kod. Ürünler (SKU) ile ilgili güncellemeleri bu değeri zorunlu olarak göndermelisiniz.	string
+status	Hayır	Ürünün satışta olup olmadığını belirtir. Satışta olması isteniyorsa "Active" yazılır, ürünü satıştan çekmek için "Suspended" yazılır.	string
+preparingDay	Hayır	Ürün bazlı kargoya gönderim süresini belirtir. 0'dan büyük bir değer girilmelidir.	integer
+shipmentTemplate	Hayır	Satıcı Panelinde Hesabım > Teslimat Bilgileri alanından oluşturulan "Şablon Adı" başlığında belirtilen değeri yazabilirsiniz.	string
+deleteProductMainId	Hayır	Ana ürün kodunu (productMainId ) silmek isterseniz "True" değerini ekleyiniz. Alabildiği değerler: True, False	boolean
+productMainId	Hayır	Ana ürün kodudur. Aynı modele ait ürün özelliklerini birleştirir.	string
+deleteMaxPurchaseQuantity	Hayır	Maksimum satın alım değerini (maxPurchaseQuantity) silmek isterseniz "True" değerini ekleyiniz. Alabildiği değerler: True, False	boolean
+maxPurchaseQuantity	Hayır	Ürüne toplu alışveriş yapılmaması isteniyorsa, ürün bazlı maksimum kaç adet satın alınabileceğini belirtir.	integer
+description	Hayır	Ürün açıklaması	string
+vatRate	Hayır	Ürün KDV oranı 0,1,10,20 değerlerini alabilir	integer
+attributes	Hayır	Ürünün kategori özellik bilgilerini yazınız. Kategori özellik servisindeki Mandatory>true olan değerini yazmak zorunludur.	string
+     id	*Hayır	Kategori özellik servisindeki özellik id değerini ekleyiniz.	long
+     valueId	*Hayır	Kategori özellik servisindeki CustomValue>false ise valueId yazılmalıdır.	long
+     customValue	*Hayır	Kategori özellik servisindeki CustomValue>true ise free değer yazabilirsiniz.	string
+ *attributes alanı gönderildiği durumda id, valueId ve customValue alanları zorunludur.
+
+Ürün Güvenliği Bilgileri ve Besin Değerleri
+attributeId	attributeName
+1000000	Kayıtlı Ticari Unvan
+1000002	İletişim Adresi
+1000003	E-posta
+1000004	Menşei
+1000005	Sağlayıcı Tipi
+1000006	Ürün Güvenliği Görseli 1
+1000007	Ürün Güvenliği Görseli 2
+1000008	Ürün Güvenliği Görseli 3
+1000009	Ürün Güvenliği Görseli 4
+1000010	Ürün Güvenliği Görseli 5
+1000011	Ürün Güvenliği Görseli 6
+1000012	Ürün Güvenliği Görseli 7
+1000013	Ürün Güvenliği Görseli 8
+1000014	Ürün Güvenliği Dökümanı 1
+1000015	Ürün Güvenliği Dökümanı 2
+1000016	Ürün Güvenliği Dökümanı 3
+1000017	Kullanım Talimatı
+1000018	Materyal Bileşeni
+1000019	Bakım Talimatı
+1000020	CE Uygunluk Sembolü
+1000021	Yıkama Talimatı
+1000022	Ürün Uyarı Sembolleri
+1000023	Ürün Güvenliği Uyarıları
+1000024	Alerjen Uyarısı
+1000025	Muhafaza Koşulları
+1000026	Kullanım Önerileri
+1000027	İçindekiler
+1000028	Son Tüketim Tarihi
+1000029	Tavsiye Edilen Tüketim Tarihi
+1000030	Tamir Edilebilirlik
+1000031	İçerik Listesi
+1000001	Marka (Ürün Güvenliği)
+2000202	Enerji (kcal)
+2000203	Enerji (kJ)
+2000204	Yağ (g)
+2000205	Doymuş yağ (g)
+2000206	Trans yağ (g)
+2000207	Tekli doymamış yağ (g)
+2000208	Çoklu doymamış yağ (g)
+2000209	Kolesterol (mg)
+2000210	Karbonhidrat (g)
+2000211	Şeker (g)
+2000212	Şeker Alkolü (g)
+2000213	Nişasta (g)
+2000214	Lif (g)
+2000215	Protein (g)
+2000216	Tuz (g)
+2000217	Sodyum (g)
+2000218	Vitamin A (µg)
+2000219	Vitamin D (µg)
+2000220	Vitamin E (mg)
+2000221	Vitamin K (µg)
+2000222	Vitamin C (mg)
+2000223	Tiamin (mg)
+2000224	Riboflavin (mg)
+2000225	Niacin (mg)
+2000226	Vitamin B6 (mg)
+2000227	Folik asit (µg)
+2000228	Vitamin B12 (µg)
+2000229	Biotin (µg)
+2000230	Pantotenik Asit (mg)
+2000231	Potasyum (mg)
+2000232	Klorur (mg)
+2000233	Kalsiyum (mg)
+2000234	Fosfor (mg)
+2000235	Magnezyum (mg)
+2000236	Demir (mg)
+2000237	Çinko (mg)
+2000238	Bakır (mg)
+2000239	Manganez (mg)
+2000240	Florur (mg)
+2000241	Selenyum (µg)
+2000242	Krom (µg)
+2000243	Molibden (µg)
+2000244	İyot (µg)
+2000245	Alkol Derecesi
+
+
+Ürün Fiyat-Stok Güncelleme & Task Detail Sorgulama
+ 
+Aşağıda fiyat&stok güncelleme, ürün temel bilgilerini güncelleme ve task detail sorgulama dökümanlarını görüntüleyebilirsiniz.
+
+Ürün Fiyat-Stok Güncelleme (UpdateProductPriceAndStock)
+POSThttps://api.n11.com/ms/product/tasks/price-stock-update
+Bu servis kullanılarak ürünlerin fiyat ve stok bilgisini güncelleyebilirsiniz.
+
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+Tek seferde maximum 1000 sku için güncelleme atabilirsiniz.
+İsteğinizi json formatında body de raw olarak iletmeniz gerekir.
+HTTP isteğinizi 'POST' methoduyla ilgili endpoint'e gönderin.
+JSON dosyanızı iletilen örnek desen formatında hazırlayın.
+Servise yapılan her başarılı istek için response’ta ID (taskId) değeri dönmektedir.  TaskDetail servisi ile  yapılan işlemin kontrolü sağlanabilir.
+Fiyat güncellemelerinde listPrice ve salePrice parametreleri birlikte gönderilmelidir.
+listPrice ve salePrice değerlerinde küsurat bilgisi nokta ile ayrılmalıdır. Virgül kullanımı hata alınmasına sebebiyet verecektir.
+listPrice ve salePrice değerlerinde küsurat noktadan sonra 2 hane iletilmelidir. Aksi takdirde isteğiniz REJECT alacaktır. 
+Sadece fiyat veya sadece stok güncellemesi yapılacak ise istekte güncellemek istemediğiniz alanları göndermeyebilirsiniz. İstekte mevcut olmayan alanlar için herhangi bir update yapılmayacaktır. Burada dikkat edilmesi gereken nokta fiyat güncellemelerinde listPrice ve salePrice'ın birlikte gönderilmesi gerektiğidir.
+listPrice ve salePrice değerini aynı değer gönderebilirsiniz. listPrice, salePrice'dan yüksek olmalıdır. Aksi takdirde isteğiniz REJECT alacaktır. 
+ 
+
+Response Status	Açıklama
+IN_QUEUE	İlettiğiniz task kuyrukta bekmektedir.Task Detail Servisinden taskid ile sorgulayabilirsiniz.
+REJECT	Veri seti yüklenmediğinde doğrudan reason parametresi ile açıklamasını iletilmektedir.
+Örnek Request:
+
+{
+  "payload": {
+    "integrator": "Entegratör İsmini yazabilirsiniz",
+    "skus": [
+      {
+        "stockCode": "test_variant_ea1_1",
+        "listPrice": 2000,
+        "salePrice": 1600,
+        "quantity": 2,
+        "currencyType": "TL"
+      },
+      {
+        "stockCode": "test_variant_ea1_2",
+        "listPrice": 2200,
+        "salePrice": 1800,
+        "quantity": 1,
+        "currencyType": "TL"
+      }
+
+    ]
+  }
+}
+
+Örnek Response:
+
+{
+   "id": 1092,
+   "type": "SKU_UPDATE",
+   "status": "IN_QUEUE",
+   "reasons": [
+       "1 sku işlenmeye alındı."
+   ]
+
+}
+Request Parametre	Zorunluluk	Açıklama	Veri Tipi
+integrator	Evet	Entegratör ve API kullanıcısının verilebilecek özel ismi. Tüm gönderimlerinizde aynı değer kullanmanızı rica ederiz.	string
+stockCode	Evet	Tedarikçinin ürüne belirlediği uniq kod. Ürünler (SKU) ile ilgili güncellemeleri bu değeri zorunlu olarak göndermelisiniz.	string
+listPrice	Hayır*	Ürün liste fiyatı (Satış fiyatı düşük olunca üstü çizilen fiyat) PSF.	number
+salePrice	Hayır*	Ürün satış fiyatı TSF.	number
+quantity	Hayır	Stok miktarı.	integer
+currencyType	Hayır	Ürün liste fiyatı para birimi. Alınan değerler TL, USD ve EUR olabilir.	text
+Task Detail Sorgulama (TaskDetails)
+POSThttps://api.n11.com/ms/product/task-details/page-query
+UpdateProduct ve UpdateProductPriceAndStock servislerine yapılan her başarılı istek için response’ta id(taskId)  değeri dönmektedir. Bu ID değerini requestte taskid'ye yazınız.Servis ile ilgili işlem için itemCode bazlı sonuçları alınmaktadır.
+
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+İsteğinizi json formatında body de raw olarak iletmeniz gerekir.
+Response’da yer alan itemCode değeri stock kodunu ifade eder. Status, Fail ve SUCCESS değerlerini alımaktadır. Sku alanında güncelleme alanın sonucunu görmektesiniz.
+Task işlenmesi bitti ise  "status": "PROCESSED" değerinden alabilirsiniz.Buradaki değerler statu değerleri "PROCESSED" = İşlem tamamlandı  ve “IN_QUEUE” = İşleniyor  “REJECT” =  Task işlenmemiştir.
+
+Örnek Request;
+
+{
+    "taskId": 362,
+    "pageable": {
+        "page": 0,
+        "size": 1000
+    }
+}
+
+Örnek Response;
+
+{
+    "taskId": 1095,
+    "skus": {
+        "content": [
+            {
+                "id": 1585,
+                "taskId": 1095,
+                "ownerId": 2770263,
+                "itemCode": "1234567m",
+                "status": "SUCCESS",
+                "sku": {
+                    "salePrice": 1100.00,
+                    "listPrice": 1200.00,
+                    "currencyType": "TL",
+                    "reasons": [
+                        "Başarıyla tamamlandı."
+                    ],
+                    "stock": 9
+                },
+                "reasons": [
+                    "Başarıyla tamamlandı."
+                ]
+            }
+        ]
+,
+        "pageable": {
+            "sort": {
+                "empty": true,
+                "sorted": false,
+                "unsorted": true
+            },
+            "offset": 0,
+            "pageNumber": 0,
+            "pageSize": 100000,
+            "paged": true,
+            "unpaged": false
+        },
+        "last": true,
+        "totalElements": 1,
+        "totalPages": 1,
+        "sort": {
+            "empty": true,
+            "sorted": false,
+            "unsorted": true
+        },
+        "first": true,
+        "number": 0,
+        "numberOfElements": 1,
+        "size": 100000,
+        "empty": false
+    },
+    "createdDate": "12-08-2024 06:12:05",
+    "modifiedDate": "12-08-2024 06:12:11",
+    "status": "PROCESSED"
+}
+
+
+Satıcı Ürün Silme
+RestAPI ürün silme servisi ile satıcı stok kodu bazında ürün silebilirsiniz.
+
+Servise yapılan her başarılı istek için response’ta ID (taskId) değeri dönmektedir. TaskDetails servisi üzerinden yapılan işlemin kontrolü sağlanabilir.
+
+
+Ürün Silme (DeleteProduct)
+POST https://api.n11.com/ms/product/tasks/product-delete
+Bu servisi kullanarak ürün silebilirsiniz.
+
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+Tek seferde maximum 1000 sku gönderebilirsiniz.
+İsteğinizi json formatında body de raw olarak iletmeniz gerekir.
+HTTP isteğinizi 'POST' methoduyla ilgili endpoint'e gönderin.
+JSON dosyanızı iletilen örnek desen formatında hazırlayın.
+ 
+ 
+
+Örnek Request;
+ 
+
+
+{
+    "payload": {
+        "integrator": "Entegratör İsmini yazabilirsiniz",
+        "skus": [
+            {
+                "stockCode": "stokKodu1"
+            },
+            {
+                "stockCode": "stokKodu2"
+            },
+            {
+                "stockCode": "stokKodu3"
+            }
+        ]
+    }
+}
+    
+
+ 
+Örnek Response;
+ 
+
+
+{
+    "id": 2904402104,
+    "type": "PRODUCT_DELETE",
+    "status": "IN_QUEUE",
+    "reasons": [
+        "3 sku işlenmeye alındı."
+    ]
+}
+
+Parametre	Zorunluluk	Açıklama	Tip
+integrator	Evet	Entegratör ve API kullanıcısının verilebilecek özel ismi. Tüm gönderimlerinizde aynı değer kullanmanızı rica ederiz.	string
+stockCode	Evet	Tedarikçinin ürüne belirlediği uniq kod. Silinecek ürünlerin stok kodlarını göndermelisiniz.	string
+ 
+ 
+ Çoklu Katalog Arama (SearchCatalog) SOAP API
+Katalog servisi için WSDL adresi: https://api.n11.com/ws/CatalogService.wsdl
+Çoklu Katalog Arama (SearchCatalog)
+n11 katalog toplu ürün sorgulama yapılmasına sağlayan servistir.
+
+• API bilgileri parametresi zorunlu olup, diğer parametrelerde zorunluluk için parametre bazında validasyon mevcuttur.
+
+Dikkat Edilmesi Gerekenler;
+
+Ürün adı (Title), Kategori ID, GTIN/Barcode, Marka ve Katalog ID alanları ile toplu ürün arama yapılabilir.
+Kategori ID girildiğinde Marka veya Ürün adı'ndan en az biri zorunlu olarak girilmelidir.
+Ürün adı girildiğinde, Kategori ID girilmesi zorunludur.
+Bir istekte birden fazla Kategori ID girilemez.
+Bir istekte birden fazla Marka girilemez.
+Ürün adı, GTIN/Barcode ve Katalog ID için bir istekte birden fazla değer gönderilebilir. Gönderilebilecek azami değer sayısı her bir parametre için 10 adettir. [10 değeri, ileride sistemde oluşacak yükler gözetilerek N11 tarafından artırılıp azaltılabilir.]
+Ürün adı ile yapılan aramalarda, 10 karakter ve üzeri olan ürün adları için servisten cevap dönülecektir.
+Çoklu parametre girişlerinde servis alttaki kurguya göre cevap verecektir.
+Katalog ID girilmiş ise sadece bu alana bakılarak arama yapılır. Diğer alanlara bakılmaz.
+Katalog ID girilmemiş, GTIN/Barcode girilmiş ise sadece bu alana bakılarak arama yapılır. Diğer alanlara bakılmaz.
+Katalog ID ve GTIN değerleri girilmediği çoklu aramalarda, Birden fazla parametre ile arama yapıldığında servis cevabında kesişim dönülür. (Örneğin; marka alanına 'karaca' bilgisi girildi, kategori ID 'elektrikli ev aletleri ID' bilgisi girildiyse cevapta elektrikli ev aletleri Id'si altındaki karaca markaya sahip olan ürünler yer alacaktır.)
+ 
+
+Parametre	Açıklama
+Auth.appKey	API Key
+Auth.appSecret	API Secret
+productTitles	Ürün adları, vigülle ayrılarak maksimum 10 adet olacak şekilde toplu girilebilir
+categoryId	Kategory Id
+uscs	GTIN/Barcode, vigülle ayrılarak maksimum 10 adet olacak şekilde toplu girilebilir
+brandName	Marka
+catalogIds	Katalog Id, vigülle ayrılarak maksimum 10 adet olacak şekilde toplu girilebilir
+currentPage	Mevcut sayfa no
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da “failure” durum bilgilerini döner.
+searchResponses.searchResponse.products.product.catalogId	Ürünün katalog id bilgisi
+searchResponses.searchResponse.products.product.categoryId	Ürünün kategori id bilgisi
+searchResponses.searchResponse.products.product.categoryName	Ürünün kategori adı
+searchResponses.searchResponse.products.product.productTitle	Ürünün adı
+searchResponses.searchResponse.products.product.usc	Ürünün GTIN/Barcode bilgisi
+searchResponses.searchResponse.searchRequest.usc	Arama yapılan GTIN/Barcode bilgisi
+searchResponses.searchResponse.searchRequest.categoryId	Arama yapılan kategori id bilgisi
+searchResponses.searchResponse.searchRequest.productTitle	Arama yapılan ürün adı
+searchResponses.searchResponse.searchRequest.catalogId	Arama yapılan katalog id bilgisi
+searchResponses.searchResponse.searchRequest.brandName	Arama yapılan marka
+Örnek Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:SearchCatalogRequest>
+            <auth>
+                <appKey>***</appKey>
+                <appSecret>***</appSecret>
+            </auth>
+            <productTitles></productTitles>
+            <categoryId></categoryId>
+            <uscs></uscs>
+            <brandName></brandName>
+            <catalogIds>966491, 964912</catalogIds>
+            <currentPage>0</currentPage>
+        </sch:SearchCatalogRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3:SearchCatalogResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+            <searchResponses>
+                <searchResponse>
+                    <products>
+                        <product>
+                            <catalogId>966491</catalogId>
+                            <categoryId>1000001832</categoryId>
+                            <categoryName>İç Cephe</categoryName>
+                            <productTitle>description test</productTitle>
+                        </product>
+                    </products>
+                    <searchRequest>
+                        <catalogId>966491</catalogId>
+                    </searchRequest>
+                </searchResponse>
+                <searchResponse>
+                    <products>
+                        <product>
+                            <catalogId>964912</catalogId>
+                            <categoryId>1000001832</categoryId>
+                            <categoryName>İç Cephe</categoryName>
+                            <productTitle>Filli Boya İndeko-Home Küf Önleyici İç Cephe Boyası Test</productTitle>
+                        </product>
+                    </products>
+                    <searchRequest>
+                        <catalogId>964912</catalogId>
+                    </searchRequest>
+                </searchResponse>
+            </searchResponses>
+        </ns3:SearchCatalogResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+Hızlı Ürün Yükleme
+POST https://api.n11.com/ms/product/tasks/product-create
+
+CreateProduct ürün yükleme servisimiz üzerinden belirli parametreleri eleyerek barcode ya da catalogId bazında hızlı ürün yükleyebilirsiniz.
+
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+Tek seferde maximum 1000 sku gönderebilirsiniz.
+İsteğinizi json formatında body de raw olarak ve aşağıdaki örnek desende iletiniz.
+HTTP isteğinizi 'POST' methoduyla ilgili endpoint'e gönderin.
+Servise yapılan her başarılı istek için response’ta ID (taskId) değeri dönmektedir. TaskDetail servisi ile yapılan işlemin kontrolü sağlanabilir.
+Dikkat Edilmesi Gerekenler;
+SearchCatalog servisinden dönen n11'e kayıtlı catalogId ya da barcode alanını bu serviste gönderebilirsiniz.
+Dönen task id bilgisi ile TaskDetails servisinden işlem sonucunu kontrol edebilirsiniz.
+Ürün bazlı shipmentTemplate (kargo şablon adı) gönderilmelidir.
+attributes ve images alanı [ ] şeklinde kapalı köşeli parantez ile gelmelidir ( zorunlu ).
+Request içerisinde barcode ya da catalogId alanı zorunludur, her ikisi de dolu ise cataogId öncelikli baz alınacaktır.
+n11 kataloğundan eşleşen üründe kataloga kayıtlı açıklama alanı var ise n11 açıklaması ürüne eklenecektir, katalog açıklama yok ise Request içerisinde gelen description alanı baz alınacaktır.
+barcode ile gönderimde, gönderilen barcode değerine sahip ürünün n11 kategorisi ile Request içerisinde gelen categoryId alanı farklı ise ürün satıcı panelinde Aksiyon Bekleyenler > Satıcı Onayı Bekliyor statüsü ile kayıt edilecektir, bu durumda satıcı panelinden ürün içerisine girip onay vererek ürünü satışa açabilirsiniz.
+Parametre	Zorunlu	Açıklama	Tip
+integrator	Evet	API Kullanıcı/Entegratör Firma ismini yazınız.Tüm gönderimlerinizde aynı ismi iletiniz.	string
+description	Evet	Ürüne ait açıklamaları ekleyiniz.	HTML-string
+categoryId	Evet	GetCategories servisinden aldığınız kategorinin en alt kırılım id değerini yazınız	long
+productMainId	Evet	Ürüne ait tüm modelleri için aynı id yazınız.Varyantlı ürün açmak için Renk ve Beden tüm değeri için aynı değer eklenmelidir. Bu renkleri aynı sayfada toplarken bedenleri varyantlı açılmasını sağlar.	string
+preparingDay	Evet	Ürünün kargoya verilmesi için gereken süre anlamına gelmektedir.	integer
+shipmentTemplate	Evet	Hesabım>Teslimat Bilgilerimden oluşturduğunuz kargo şablon ismini yazınız.	string
+maxPurchaseQuantity	Hayır	Maksimum tekil alıcı başına eklenen satın alım adetidir.	integer
+stockCode	Evet	Ürüne ait belirlediğiniz uniq değerlerdir.Stok-fiyat güncellemeleriniz stokcode'a göre yapmanız gerekmektedir. Maksimum değeri 255	string
+catalogId	Hayır : barcode alanı dolu ise	n11'in katalogundaki id değeridir.	long
+barcode	Hayır : catalogId alanı dolu ise	n11 kataloguna kayıtlı barcode değeri	string
+quantity	Evet	Stok miktarı.Maksimum değer 999.999	integer
+images/url/order	Evet	Hızlı ürün yükleme adımında bu alan boş gönderilmelidir, [] şeklinde ( köşeli parantez )	string
+attributes	Evet	Hızlı ürün yükleme adımında bu alan boş gönderilmelidir, [] şeklinde ( köşeli parantez )	string
+salePrice	Evet	Ürün satış fiyatı	amount
+listPrice	Evet	Ürün liste fiyatı(Satış fiyatı düşük olunca üstü çizilen fiyat) PSF	amount
+vatRate	Evet	Ürün KDV oranı 0,1,10,20 değerlerini alabilir	integer
+Parametre (Cevap)	Açıklama	Tip
+id	Taskdetail'de bu idye göre sorulanmalıdır.	long
+type	Güncelleme (SKU_UPDATE) veya Yükleme(PRODUCT_CREATE) tasklı olduğu anlaşılır	string
+status	IN_QUEUE (Task İşleniyor, Taskdetail'den sorgulayınız.) ve REJECT (Task İşlenmemiştir . Reasons alanını kontrol ediniz.)	string
+reasons	Status bilgisine göre nedenler yazmaktadır.	list of string
+ 
+Örnek Request:
+
+{
+    "payload": {
+        "integrator": "Entegratör isminizi yazınız",
+        "skus": [
+            {
+                "description": "BB test test",
+                "categoryId": 1000476,
+                "productMainId": "test1",
+                "preparingDay": 3,
+                "shipmentTemplate": "1",
+                "maxPurchaseQuantity": 5,
+                "stockCode": "md01g4141",
+                "catalogId": null,
+                "barcode": 8806094924862,
+                "quantity": 10,
+                "images": [],
+                "attributes": [],
+                "salePrice": 2000,
+                "listPrice": 2200,
+                "vatRate": 10
+            }
+        ]
+    }
+}
+Örnek Response:
+
+{
+   "id": 1092,
+   "type": "PRODUCT_CREATE",
+   "status": "IN_QUEUE",
+   "reasons": [
+       "1 sku işlenmeye alındı."
+   ]
+}
+
+
+Sipariş servisleri için WSDL adresi: https://api.n11.com/ws/OrderService.wsdl
+
+Detaylı Sipariş Listeleme (DetailedOrderList)
+Verilen arama kriterlerine göre sipariş bilgisi ile beraber sipariş maddelerini de listelemek için kullanılır.
+
+DetailedOrderListRequest
+auth	Bkz: Yetkilendirme
+searchData.productId	Ürün n11 ID si
+searchData.status	Bkz: SearchData
+searchData.buyerName	Siparişi veren N11 üye adı
+searchData.orderNumber	Sipariş numarası
+searchData.productSellerCode	Ürünün mağaza kodu
+searchData.recipient	Teslim alacak alıcının adı
+searchData.period.startDate	Sipariş oluşturma tarihi başlangıç
+searchData.period.endDate	Sipariş oluşturma tarihi bitiş
+searchData.sortForUpdateDate	Siparişleri UpdateDate göre listeler Bkz: Listeleme
+searchData.updateDateSortOrder	Siparişlerin UpdateDate göre sıralama (DEPRECATED-Sıralama geçici devre dışı bırakıldı) Bkz:Sıralama
+pagingData	Bkz: Sayfalandırma
+*Bold alanlar zorunlu alanlardır.
+
+DetailedOrderListResponse
+result	Bkz: Result
+pagingData	Bkz: Sayfalandırma
+orderList.order.buyer. fullName	Siparişi veren alıcı adı
+orderList.order .buyer.id	Siparişi veren alıcı N11 ID si
+orderList.order buyer.taxId	Vergi numarası
+orderList.order .buyer.taxOffice	Vergi dairesi
+orderList.order .buyer.tcId	TC Id
+orderList.order .buyer.email	Siparişi veren alıcı emaili
+orderList.order .invoiceType	Fatura tipi: 1: Bireysel 2: Kurumsal
+orderList.order.billingAddress.address	Fatura adres bilgisi
+orderList.order.billingAddress.city	Adres şehri
+orderList.order.billingAddress.district	Adres ilçesi
+orderList.order.billingAddress.fullName	Adres adı
+orderList.order.billingAddress.gsm	Alıcı telefon numarası
+orderList.order.billingAddress.neighborhood	Adres semt/mahallesi
+orderList.order.billingAddress.postalCode	Adres posta kodu
+orderList.order.billingAddress.taxId	Vergi numarası
+orderList.order.billingAddress.taxOffice	Vergi dairesi
+orderList.order.billingAddress.tcId	TC Id
+orderList.order.citizenshipId	Alıcı TC kimlik numarası
+orderList.order.createDate	Sipariş oluşturma tarihi
+orderList.order.id	Sipariş N11 ID si
+orderList.order.orderNumber	Sipariş numarası
+paymentType	Bkz: Payment Type
+orderList.order.totalAmount	Siparişin toplam tutarı
+orderList.order.totalDiscountAmount	Siparişin toplam indirim tutarı
+orderList.order.orderItemList.orderItem	Sipariş maddeleri listesi
+orderList.order.orderItemList.orderItem.commission	Sipariş maddesinin n11 hizmet tutarı
+deliveryFeeType	Bkz: Delivery Fee Type
+orderList.order.orderItemList.orderItem.dueAmount	Tahsil edilecek tutar
+orderList.order.orderItemList.orderItem.id	Sipariş maddesi ID si
+orderList.order.orderItemList.orderItem.installmentChargeWithVAT	Vade farkı(kdv dahil)
+orderList.order.orderItemList.orderItem.mallDiscount	Ürün ile ilgili n11 indirimi
+orderList.order.orderItemList.orderItem.price	Ürünün birim fiyatı (indirimler hariç)
+orderList.order.orderItemList.orderItem.productId	Ürün n11 ID si
+orderList.order.orderItemList.orderItem.productName	Ürün adı
+orderList.order.orderItemList.orderItem.productSellerCode	Ürün mağaza kodu
+orderList.order.orderItemList.orderItem.quantity	Sipariş adedi
+orderList.order.orderItemList.orderItem.sellerCouponDiscount	Mağaza kupon indirimi
+orderList.order.orderItemList.orderItem.sellerDiscount	Mağaza indirimi
+orderList.order.orderItemList.orderItem.sellerInvoiceAmount	Mağaza fatura tutarı
+orderList.order.orderItemList.orderItem.shipmentInfo.shipmentCompany.id	Kargo şirket id bilgisi
+orderList.order.orderItemList.orderItem.shipmentInfo.shipmentCompany.name	Kargo şirket adı
+orderList.order.orderItemList.orderItem.shipmentInfo.shipmentMethod	Kargo yöntemi 1 ise kargo 2 ise diğer
+orderList.order.orderItemList.orderItem.shipmentDate	Kargo tarihi
+orderItem.status	Bkz: OrderItem Status
+orderList.order.orderItemList.orderItem.totalMallDiscountPrice	N11 indirimleri toplamı
+orderList.order.orderItemList.orderItem.version	Sipariş kaleminin stok takip versiyon numarası
+orderList.order.orderItemList.orderItem.updatedDate	Sipariş kalemi güncellenme tarihi
+orderList.order.orderNumber	Sipariş numarası
+orderList.order.paymentType	Bkz: Ödeme tipi
+orderList.order.status	Bkz: Sipariş Durumu
+orderList.order.totalAmount	Sipariş tutarı
+orderList.order.totalDiscountAmount	Sipariş toplam indirim tutarı (Satıcı+n11)
+orderList.order.orderItemList.orderItem.stockKeepingUnitId	İlgili ürünün N11’deki SKU ID bilgisini vermektedir.
+orderList.order.shippingAddress.address	Fatura adres bilgisi
+orderList.order.shippingAddress.city	Adres şehri
+orderList.order.shippingAddress.district	Adres ilçesi
+orderList.order.shippingAddress.fullName	Adres adı
+orderList.order.shippingAddress.gsm	Alıcı telefon numarası
+orderList.order.shippingAddress.neighborhood	Adres semt/mahallesi
+orderList.order.shippingAddress.postalCode	Adres posta kodu
+orderList.order.shippingAddress.taxId	Vergi numarası
+orderList.order.shippingAddress taxOffice	Vergi dairesi
+orderList.order.shippingAddress.tcId	TC Id
+Sipariş Durumu (SearchData)
+searchData.status;
+
+“New”: Yeni siparişler
+“Approved”: Onaylanmış Siparişler
+“Rejected”: İptal Edilmiş Siparişler
+“Shipped”: Kargolanmış Siparişler
+“Delivered”: Teslim Edilen Siparişler
+“Completed”: Tamamlanmış Siparişler
+“Claimed”: İptal/İade/Değişim Durumundaki Siparişler
+“LATE_SHIPMENT” Kargolanması Geciken Siparişler
+Sipariş Maddesi Durum Bilgisi (OrderItem Status)
+orderList.order.orderItemList.orderItem.status ;
+
+2: Ödendi
+3: Geçersiz
+4: İptal Edilmiş
+5: Kabul Edilmiş
+6: Kargoda
+7: Teslim Edilmiş
+8: Reddedilmiş
+9: İade Edildi
+10: Tamamlandı
+11: İade İptal Değişim Talep Edildi
+12: İade İptal Değişim Tamamlandı
+13: Kargoda İade
+14: Kargo Yapılması Gecikmiş,
+15: Kabul Edilmiş Ama Zamanında Kargoya Verilmemiş
+16: Teslim Edilmiş İade,
+17: Ödeme Ertelendi
+51: İptal Talep Edildi
+52: İade Talep Edildi(sipariş tamamlanması sonrası)
+53: Değişim Talep Edildi(sipariş tamamlanması sonrası)
+DetailedOrderList Örnek Çağrı
+Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:DetailedOrderListRequest>
+            <auth>
+                <appKey>***</appKey>
+                <appSecret>***</appSecret>
+            </auth>
+            <searchData>
+                <productId></productId>
+                <status></status>
+                <buyerName></buyerName>
+                <orderNumber></orderNumber>
+                <productSellerCode></productSellerCode>
+                <recipient></recipient>
+                <sameDayDelivery></sameDayDelivery>
+                <period>
+                    <startDate>20/02/2018</startDate>
+                    <endDate>21/02/2018</endDate>
+                </period>
+                <sortForUpdateDate>true</sortForUpdateDate>
+                <updateDateSortOrder>asc</updateDateSortOrder>
+            </searchData>
+            <pagingData>
+                <currentPage>0</currentPage>
+                <pageSize>100</pageSize>
+                <totalCount></totalCount>
+                <pageCount></pageCount>
+            </pagingData>
+        </sch:DetailedOrderListRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Response
+
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+    <env:Header/>
+    <env:Body>
+        <ns3:DetailedOrderListResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result><status>success</status></result>
+            <pagingData>
+                <currentPage>0</currentPage>
+                <pageSize>99</pageSize>
+                <totalCount>1</totalCount>
+                <pageCount>1</pageCount>
+            </pagingData>
+            <orderList>
+                <order>
+                    <billingAddress>
+                        <address>qaorderaddress</address>
+                        <city>Van</city>
+                        <district>Merkez</district>
+                        <fullName>qaoabuyer_702076</fullName>
+                        <gsm>5301532106</gsm>
+                        <neighborhood/>
+                        <postalCode>65080</postalCode>
+                        <tcId>10000000146</tcId>
+                    </billingAddress>
+                    <buyer>
+                        <email>qabuyer_373771@gmail.com</email>
+                        <fullName>qabuyer_373771 qabuyer_373771</fullName>
+                        <id>373771</id>
+                        <taxId/>
+                        <taxOffice/>
+                        <tcId>10000000146</tcId>
+                    </buyer>
+                    <invoiceType>1</invoiceType>
+                    <citizenshipId>***********</citizenshipId>
+                    <createDate>15/09/2016 13:29</createDate>
+                    <id>113975650</id>
+                    <orderItemList>
+                        <orderItem>
+                            <approvedDate/>
+                            <attributes>
+                                <attribute>
+                                    <id>354081125</id>
+                                    <name>Renk</name>
+                                    <value>Kırmızı</value>
+                                </attribute>
+                            </attributes>
+                            <commission>8.25</commission>
+                            <customTextOptionValues/>
+                            <deliveryFeeType>2</deliveryFeeType>
+                            <dueAmount>55.00</dueAmount>
+                            <id>18675500</id>
+                            <installmentChargeWithVAT>0</installmentChargeWithVAT>
+                            <mallDiscount>0</mallDiscount>
+                            <price>55</price>
+                            <productId>258512546</productId>
+                            <productName>My Test Product Title</productName>
+                            <productSellerCode>MySellerCode1234</productSellerCode>
+                            <quantity>1</quantity>
+                            <sellerCouponDiscount>0</sellerCouponDiscount>
+                            <sellerDiscount>0</sellerDiscount>
+                            <sellerInvoiceAmount>55</sellerInvoiceAmount>
+                            <sellerStockCode>StokKod1234567</sellerStockCode>
+                            <shipmentInfo>
+                                <campaignNumberStatus>2</campaignNumberStatus>
+                                <shipmentCode>18011950</shipmentCode>
+                                <shipmentCompany>
+                                    <id>389</id>
+                                    <name>Balnak</name>
+                                    <shortName>BLK</shortName>
+                                </shipmentCompany>
+                                <shipmentMethod>1</shipmentMethod>
+                            </shipmentInfo>
+                            <shippingDate/>
+                            <status>2</status>
+                            <stockKeepingUnitId>121876877151</stockKeepingUnitId>
+                            <totalMallDiscountPrice>0.00</totalMallDiscountPrice>
+                            <updatedDate>20/09/2016 14:29</updatedDate>
+                            <version>12</version>
+                        </orderItem>
+                    </orderItemList>
+                    <orderNumber>qa202125281764</orderNumber>
+                    <paymentType>1</paymentType>
+                    <status>2</status>
+                    <totalAmount>55</totalAmount>
+                    <totalDiscountAmount>0</totalDiscountAmount>
+                    <shippingAddress>
+                        <address>qaorderaddress</address>
+                        <city>Van</city>
+                        <district>Merkez</district>
+                        <fullName>qaoabuyer_702077</fullName>
+                        <gsm>5301532106</gsm>
+                        <neighborhood/>
+                        <postalCode>65080</postalCode>
+                        <tcId>10000000146</tcId>
+                    </shippingAddress>
+                </order>
+            </orderList>
+        </ns3:DetailedOrderListResponse>
+    </env:Body>
+</env:Envelope>
+OrderItemAccept
+Siparişi onaylamak kullanmanız gerekir. New statüsündeki siparişler için işleme almanız gerekir.
+
+OrderItemAcceptRequest
+Auth	Bkz: Yetkilendirme
+orderItem.id	Sipariş kalemi n11 ID si
+numberOfPackages	Paket Sayısı
+*Bold alanlar zorunlu alanlardır.
+
+OrderItemAcceptResponse
+result	Bkz: Result
+orderItemList.orderItem.aprovedDate	Siparişin onaylanma tarihi
+orderItemList.orderItem.attributes.attribute.name	Sipariş kalemi özellik adı
+orderItemList.orderItem.attributes.attribute.value	Sipariş kalemi özellik değeri
+orderItemList.orderItem.commission	Sipariş maddesi ile ilgili n11 hizmet tutarı
+orderItemList.orderItem.customTextOptionValues	Sipariş kalemine girilen özellik değeri
+orderItemList.orderItem.deliveryFeeType	Bkz: Delivery Fee Type
+orderItemList.orderItem.dueAmount	Tahsil edilecek tutar
+orderItemList.orderItem.id	Sipariş maddesi n11 ID bilgisi
+orderItemList.orderItem.installmentChargeWithVAT	Vade farkı(kdv dahil)
+orderItemList.orderItem.mallDiscount	Ürün ile ilgili n11 indirimi
+orderItemList.orderItem.price	Ürünün birim fiyatı (indirimler hariç)
+orderItemList.orderItem.productId	Ürünün n11 ID si
+orderItemList.orderItem.productName	Ürün adı
+orderItemList.orderItem.productSellerCode	Ürün mağaza kodu
+orderItemList.orderItem.quantity	Sipariş adedi
+orderItemList.orderItem.sellerCouponDiscount	Mağaza kupon indirimi
+orderItemList.orderItem.sellerDiscount	Mağaza indirimi
+orderItemList.orderItem.sellerInvoiceAmount	Mağaza fatura tutarı
+orderItemList.orderitem.shipmentInfo.campaignNumber	Kampanya Numarası
+orderItemList.orderitem.shipmentInfo.campaignNumberStatus	Kampanya Numara Durumu
+1: Used 2:Unused
+orderItemList.orderitem.shipmentInfo.shipmentCode	Kargo kodu
+orderItemList.orderitem.shipmentInfo.shipmentCompany.id	Kargo şirket id bilgisi
+orderItemList.orderItem.shipmentInfo.shipmentCompany.name	Kargo şirket adı
+orderItemList.orderItem.shipmentInfo.shipmentCompany.shortName	Kargo şirketi kısa adı
+orderItem.shipmentInfo.shipmentMethod	Kargo yöntemi
+1: Kargo
+2: Diğer
+orderItem.shipmentDate	Kargolama tarihi
+orderItem.status	Bkz: OrderItem Status
+orderItem.totalMallDiscountPrice	N11 indirimleri toplamı
+orderItem.version	İlgili ürünün stok versiyon numarası
+OrderItemAccept Örnek Çağrı
+Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:OrderItemAcceptRequest>
+            <auth>
+                <appKey>***</appKey>
+                <appSecret>***</appSecret>
+            </auth>
+            <orderItemList>
+                <orderItem>
+                    <id>18675500</id>
+                </orderItem>
+            </orderItemList>
+            <numberOfPackages>1</numberOfPackages>
+        </sch:OrderItemAcceptRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Response
+
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+    <env:Header/>
+    <env:Body>
+        <ns3:OrderItemAcceptResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+            <orderItemList>
+                <orderItem>
+                    <approvedDate>15/09/2016</approvedDate>
+                    <attributes>
+                        <attribute>
+                            <id>354081125</id>
+                            <name>Renk</name>
+                            <value>Kırmızı</value>
+                        </attribute>
+                    </attributes>
+                    <commission>8.25</commission>
+                    <customTextOptionValues/>
+                    <deliveryFeeType>2</deliveryFeeType>
+                    <dueAmount>55.00</dueAmount>
+                    <id>18675500</id>
+                    <installmentChargeWithVAT>0</installmentChargeWithVAT>
+                    <mallDiscount>0</mallDiscount>
+                    <price>55</price>
+                    <productId>258512546</productId>
+                    <productName>My Test Product Title</productName>
+                    <productSellerCode>MySellerCode1234</productSellerCode>
+                    <quantity>1</quantity>
+                    <sellerCouponDiscount>0</sellerCouponDiscount>
+                    <sellerDiscount>0</sellerDiscount>
+                    <sellerInvoiceAmount>55</sellerInvoiceAmount>
+                    <sellerStockCode>StokKod1234567</sellerStockCode>
+                    <shipmentInfo>
+                        <campaignNumberStatus>2</campaignNumberStatus>
+                        <shipmentCode>18011950</shipmentCode>
+                        <shipmentCompany>
+                            <id>389</id>
+                            <name>Balnak</name>
+                            <shortName>BLK</shortName>
+                        </shipmentCompany>
+                        <shipmentMethod>1</shipmentMethod>
+                    </shipmentInfo>
+                    <shippingDate/>
+                    <status>5</status>
+                    <totalMallDiscountPrice>0.00</totalMallDiscountPrice>
+                    <version>12</version>
+                </orderItem>
+            </orderItemList>
+        </ns3:OrderItemAcceptResponse>
+    </env:Body>
+</env:Envelope>
+Sipariş Kaleminin Kargoya Verilmesi (MakeOrderItemShipment)
+Sipariş onaylandı statüsünden sonra kullanmanız gerekir. İptal edilen siparişler için ön koşul sağlanamadı hatası verir.
+
+MakeOrderItemShipmentRequest
+Auth	Bkz: Yetkilendirme
+orderItemList.orderItem.id	Ürün n11 ID si
+orderItemList.orderItem.shipmentInfo.shipmentCompany.id	Kargo şirketinin n11 ID si
+orderItemList.orderItem.shipmentInfo.campaignNumber	Sipariş kampanya numarası
+orderItemList.orderItem.shipmentInfo.trackingNumber	Takip numarası
+orderItemList.orderItem.shipmentInfo.shipmentMethod	Kargo yöntemi
+1: Kargo
+2: Diğer
+*Bold alanlar zorunlu alanlardır.
+
+MakeOrderItemShipmentResponse
+result	Bkz: Result
+orderItemList.orderItem.approvedDate	Siparişin onaylanma tarihi
+orderItemList.orderItem.attributes	Sipariş kalemi özellileri
+orderItemList.orderItem.commission	Sipariş maddesi ile ilgili n11 hizmet tutarı
+orderItemList.orderItem.customTextOptionValues	Müşterinin sipariş kalemi için girdiği ek bilgi
+orderItemList.orderItem.deliveryFeeType	Bkz: Delivery Fee Type
+orderItemList.orderItem.dueAmount	Tahsil edilecek tutar
+orderItemList.orderItem.id	Sipariş maddesi n11 ID bilgisi
+orderItemList.orderItem.installmentChargeWithVAT	Vade farkı(kdv dahil)
+orderItemList.orderItem.mallDiscount	Ürün ile ilgili n11 indirimi
+orderItemList.orderItem.price	Ürünün birim fiyatı (indirimler hariç)
+orderItemList.orderItem.productId	Ürünün n11 ID si
+orderItemList.orderItem.productName	Ürün adı
+orderItemList.orderItem.productSellerCode	Ürün mağaza kodu
+orderItemList.orderItem.quantity	Sipariş adedi
+orderItemList.orderItem.sellerCouponDiscount	Mağaza kupon indirimi
+orderItemList.orderItem.sellerDiscount	Mağaza indirimi
+orderItemList.orderItem.sellerInvoiceAmount	Mağaza fatura tutarı
+orderItemList.orderItem.shipmentInfo.campaignNumberStatus	Kampanya numarası durumu;
+1:USED(Kullanılmış) 2: UNUSED (Kullanılmamış)
+orderItemList.orderItem.shipmentInfo.shipmentCode	Kargo kodu
+orderItemList.orderItem.shipmentInfo.shipmentCompany.id	Kargo şirket id bilgisi
+orderItemList.orderItem.shipmentInfo.shipmentCompany.name	Kargo şirket adı
+orderItemList.orderItem.shipmentInfo.shipmentCompany.shortName	Kargo Şirketi kısa adı
+orderItemList.orderItem.shipmentInfo.shipmentMethod	Kargo yöntemi
+1: Kargo
+2: Diğer
+orderItemList.orderItem.shipmentInfo.trackingNumber	Takip numarası
+orderItemList.orderItem.shippingDate	Kargolama tarihi
+orderItemList.orderItem.status	Bkz: OrderItem Status
+orderItemList.orderItem.totalMallDiscountPrice	N11 indirimleri toplamı
+orderItemList.orderItem.version	İlgili ürünün stok versiyon numarası
+MakeOrderItemShipment Örnek Çağrı
+Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:MakeOrderItemShipmentRequest>
+            <auth>
+                <appKey>***</appKey>
+                <appSecret>***</appSecret>
+            </auth>
+            <orderItemList>
+                <!--1 or more repetitions:-->
+                <orderItem>
+                    <id>18675500</id>
+                    <shipmentInfo>
+                        <shipmentCompany>
+                            <id>341</id>
+                        </shipmentCompany>
+                        <campaignNumber>466805582805015</campaignNumber>
+                        <trackingNumber>123</trackingNumber>
+                        <shipmentMethod>1</shipmentMethod>
+                    </shipmentInfo>
+                </orderItem>
+            </orderItemList>
+        </sch:MakeOrderItemShipmentRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Response
+
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+    <env:Header/>
+    <env:Body>
+        <ns3:MakeOrderItemShipmentResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+            <orderItemList>
+                <orderItem>
+                    <approvedDate>15/09/2016</approvedDate>
+                    <attributes>
+                        <attribute>
+                            <id>354081125</id>
+                            <name>Renk</name>
+                            <value>Kırmızı</value>
+                        </attribute>
+                    </attributes>
+                    <commission>8.25</commission>
+                    <customTextOptionValues/>
+                    <deliveryFeeType>2</deliveryFeeType>
+                    <dueAmount>55.00</dueAmount>
+                    <id>18675500</id>
+                    <installmentChargeWithVAT>0</installmentChargeWithVAT>
+                    <mallDiscount>0</mallDiscount>
+                    <price>55</price>
+                    <productId>258512546</productId>
+                    <productName>My Test Product Title</productName>
+                    <productSellerCode>MySellerCode1234</productSellerCode>
+                    <quantity>1</quantity>
+                    <sellerCouponDiscount>0</sellerCouponDiscount>
+                    <sellerDiscount>0</sellerDiscount>
+                    <sellerInvoiceAmount>55</sellerInvoiceAmount>
+                    <sellerStockCode>StokKod1234567</sellerStockCode>
+                    <shipmentInfo>
+                        <campaignNumberStatus>2</campaignNumberStatus>
+                        <shipmentCode>18011950</shipmentCode>
+                        <shipmentCompany>
+                            <id>341</id>
+                            <name>Sürat</name>
+                            <shortName>SRT</shortName>
+                        </shipmentCompany>
+                        <shipmentMethod>1</shipmentMethod>
+                        <trackingNumber>123</trackingNumber>
+                    </shipmentInfo>
+                    <shippingDate>15/09/2016</shippingDate>
+                    <status>6</status>
+                    <totalMallDiscountPrice>0.00</totalMallDiscountPrice>
+                    <version>12</version>
+                </orderItem>
+            </orderItemList>
+        </ns3:MakeOrderItemShipmentResponse>
+    </env:Body>
+</env:Envelope>
+Sipariş Kalemlerinin Teslim Edilmesi (OrderItemDelivery)
+Kargoya verilen sipariş kalemlerinin teslimat durumları ‘Teslim Edildi’ durumuna çekilir.
+
+OrderItemDeliveryRequest
+Auth	Bkz: Yetkilendirme
+orderItemList.orderItem.id	Sipariş maddesi ID si
+orderItemList.orderItem.shipmentInfo.shipmentCompany.id	Kargo şirketi id bilgisi
+orderItemList.orderItem.shipmentInfo.shipmentMethod	Kargo yöntemi
+1: Kargo
+2: Diğer
+deliveryTime	Kargo teslim tarihi ve saati
+*Bold alanlar zorunlu alanlardır.
+
+OrderItemDeliveryResponse
+result	Bkz: Result
+OrderItemDelivery Örnek Çağrı
+Request
+Örnek Response;
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:OrderItemDeliveryRequest>
+            <auth>
+                <appKey>***</appKey>
+                <appSecret>***</appSecret>
+            </auth>
+            <orderItemList>
+                <orderItemId>***</orderItemId>
+            </orderItemList>
+            <shipmentCompanyId>***</shipmentCompanyId>
+            <shipmentMethod>***</shipmentMethod>
+            <deliveryTime>***</deliveryTime>
+        </sch:OrderItemDeliveryRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3:OrderItemDeliveryResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+        </ns3:OrderItemDeliveryResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+Satıcı Ürün Sorgulama  (GetProductQuery)
+GET https://api.n11.com/ms/product-query
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+HTTP isteğinizi 'GET' methoduyla ilgili endpoint'e gönderin.
+ 
+
+Dikkat Edilmesi Gerekenler;
+
+Request parametrelerinde zorunluluk yer almamaktadır, parametreler boş olacak şekilde listeleme yapabilirsiniz. Hiçbir parametre girilmediğinde satıcının tüm ürünleri page 0 size 20 olacak şekilde listelenecektir.
+stockCode parametresi her istekte tek bir değer alabilmektedir, birden fazla ürün listelemek için satıcı stok kodu bazlı istek atmanız gerekmektedir.
+Pagination yapısı kullanıyorsanız page 0 başlatarak responsede dönen totalPages alanını dikkate alarak content boş dönen sayfayı son sayfa olarak belirleyebilirsiniz.
+Response Body içerisindeki parametre değerleri karakter sayısı ve veri tipleri sipariş sayısının doğal artışıyla beraber değişebilmektedir ( Örneğin n11ProductId alanı 9 haneden 10 haneye çıkabilir, entegratör üzerinde tanımlama yapılırken bu durumlar göz önünde bulundurulması sağlıklı olacaktır ).
+Parametre	Parametre Değer	Açıklama	Tip
+id	N11 Ürün Kodu	N11 Ürün kodu ile listeleme	long
+productMainId	Grup Kodu	Ürün grup kodu ile listeleme	string
+stockCode	Satıcı Ürün Kodu	Satıcı ürün kodu ile listeleme	string
+saleStatus	On_Sale : Satışta
+Out_Of_Stock : Stokta Yok	Ürün satış durumuna göre listeleme	string
+productStatus	Active : Onaylı
+InCatalogApproval : Katalog Onay Sürecinde
+Suspended : Beklemede
+CatalogRejected : Katalogdan Reddedildi
+Prohibited : Yasaklı
+Unlisted : Limit Dışı
+InApproval : Aksiyon Bekleyen	Ürün onay durumuna göre listeleme	string
+brandName	Marka ismi	N11 Satıcı panelinde yer alan ürünleri marka ismine göre listelemesini sağlar	string
+categoryIds	Kategori ID bilgisi	Kategori ID ile listeleme	long list
+page	Varsayılan 0	 	int
+size	Varsayılan 20 maksimum 250	 	int
+sender	SELLER : Satıcı gönderir
+N11 : n11 depo gönderir
+ALL : Tümü	Sorgulamada kullanılabilecek gönderici tipi, gönderilmediği taktirde default değer "SELLER" olarak alınır.	string
+Parametre(Cevap)	Açıklama
+n11ProductId	N11 Ürün Kodu
+sellerId	Mağaza ID
+sellerNickname	Mağaza Adı
+stockCode	Satıcı Stok Kodu
+title	Ürün Adı
+description	Ürün açıklaması
+categoryId	Kategori ID
+productMainId	Model Kodu
+status	Ürün Aktifliği
+saleStatus	Satış Durumu
+preparingDay	Kargo Hazırlık Süresi
+shipmentTemplate	Kargo Şablonu
+maxPurchaseQuantity	Maksimum Satın Alım Adedi
+customTextOptions	Müşteriye Özel Ürün Seçeneği
+catalogId	Ürün Katalog ID
+barcode	Barkod
+groupId	Ürün Katalog Grup ID
+currencyType	Para Birimi
+salePrice	Satış Fiyatı
+listPrice	Liste Fiyatı
+quantity	Stok Adedi
+attributes	Ürün Özellikleri
+imageUrls	Görsel Linkleri
+vatRate	KDV Oranı
+commissionRate	Komisyon Oranı
+sender	Gönderici tipi, SELLER: Satıcı gönderir N11: n11 depo gönderir
+totalElements	Toplam Ürün Sayısı
+totalPages	Toplam Sayfa Sayısı
+number	Mevcut Sayfa Numarası
+numberOfElements	Sayfadaki Ürün Sayısı
+size	Listelenen Ürün Adedi
+Satıcı ürünlerini listeleme
+Örnek Request
+GET https://api.n11.com/ms/product-query?id=&productMainId=&stockCode=&saleStatus=&productStatus=&brandName=&categoryIds=&page=&size=
+Örnek Response
+
+{
+    "content": [
+        {
+            "n11ProductId": 123456789,
+            "sellerId": 9876543,
+            "sellerNickname": testMagaza,
+            "stockCode": "TestSKU123",
+            "title": "Test Ürünü Kontrol Amaçlı Gri",
+            "description": "Açıklama bilgisi uzun açıklama",
+            "categoryId": 1231231,
+            "productMainId": "GrupKoduModellemeİçin",
+            "status": "Active",
+            "saleStatus": "On_Sale",
+            "preparingDay": 3,
+            "shipmentTemplate": "1",
+            "maxPurchaseQuantity": 5,
+            "customTextOptions": [],
+            "catalogId": 987654321,
+            "barcode": null,
+            "groupId": 12345678,
+            "currencyType": "TL",
+            "salePrice": 10000.0,
+            "listPrice": 10000,
+            "quantity": 2,
+            "attributes": [
+                {
+                    "attributeId": 1,
+                    "attributeName": "Marka",
+                    "attributeValue": "Diğer"
+                },
+                {
+                    "attributeId": 429,
+                    "attributeName": "Renk",
+                    "attributeValue": "Gri"
+                },
+                {
+                    "attributeId": 845,
+                    "attributeName": "Ölçüler",
+                    "attributeValue": "0.5 CMx 1 M"
+                }
+            ],
+            "imageUrls": [
+                "https://n11scdn3.akamaized.net/a1/org/07/76/32/73/IMG-4395477787604309691.jpg"
+            ],
+            "vatRate": 10,
+            "commissionRate": 8,
+            "sender": "SELLER"
+        }
+    ],
+    "pageable": {
+        "sort": null,
+        "pageNumber": 0,
+        "pageSize": 20,
+        "offset": 0,
+        "paged": true,
+        "unpaged": false
+    },
+    "last": true,
+    "totalElements": 1,
+    "totalPages": 1,
+    "first": true,
+    "number": 0,
+    "sort": null,
+    "numberOfElements": 1,
+    "size": 20,
+    "empty": false
+}
+
+Kategori Ağacı Listeleme (GetCategories)
+GET https://api.n11.com/cdn/categories
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+GetCategories kullanırken herhangi bir parametre gerekmemektedir.
+Tüm n11 kategori ağacını tek istekle alabilmektesiniz.
+Ürün açma servisinde en alt kırılım olan kategori id değerleri iletilmelidir.
+subCategories değerinin null dönmesi o kategorinin en alt kırılım olduğunu ifade etmektedir.
+ 
+Kategori Özellikleri Listeleme (GetCategoryAttributesList)
+GET https://api.n11.com/cdn/category/{categoryId}/attribute
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+HTTP isteğinizi 'GET' methoduyla ilgili endpoint'e gönderin.
+Bu serviste Request parametre yer almamaktadır, endpoint içerisindeki categoryId değerine göre kategori özelinde listeleme yapılmaktadır.
+ 
+
+Dikkat Edilmesi Gerekenler;
+
+Endpoint içerisinde yer alan {categoryId} alanını GetCategories servisinden GET : https://api.n11.com/cdn/categories requesti ile çağırdığınız kategori listesinde yer alan “id” parametresindeki değer ile değiştirerek ilgili kategori attributelerini listeleyebilirsiniz.
+Response body alanında ilgili kategoriye ait attribute id, attribute value ve attribute value id bilgilerini görüntüleyebilirsiniz.
+isMandatory : true olan attributeleri zorunludur, CreatProduct servisinde ürün bazlı göndermeniz gerekmektedir.
+isVariant : true olan attribute için CreateProduct servisinde ürünlere aynı productMainId eklenirse aynı sayfada ürün seçeneği şeklinde gözükür.
+ 
+Kategori özellikleri listeleme
+Örnek Request
+GET https://api.n11.com/cdn/category/1002571/attribute
+Örnek Response
+ 
+
+
+{
+    "id": 1002571,
+    "name": "Makyaj Çantası",
+    "categoryAttributes": [
+        {
+            "attributeId": 1,
+            "categoryId": 1002571,
+            "attributeName": "Marka",
+            "isMandatory": true,
+            "isVariant": false,
+            "isSlicer": false,
+            "isCustomValue": true,
+            "isN11Grouping": false,
+            "attributeOrder": 1000,
+            "attributeValues": [
+                {
+                    "id": 8372688,
+                    "value": "Abay"
+                },
+                {
+                    "id": 6655098,
+                    "value": "Abbagift"
+                },
+                {
+                    "id": 1229210,
+                    "value": "Albatros"
+                }
+            ]
+        },
+        {
+            "attributeId": 429,
+            "categoryId": 1002571,
+            "attributeName": "Renk",
+            "isMandatory": true,
+            "isVariant": true,
+            "isSlicer": true,
+            "isCustomValue": true,
+            "isN11Grouping": false,
+            "attributeOrder": 102,
+            "attributeValues": [
+                {
+                    "id": 8773717,
+                    "value": "Ahşap Rengi"
+                },
+                {
+                    "id": 2523534,
+                    "value": "Altın"
+                },
+                {
+                    "id": 8773712,
+                    "value": "Altın - Beyaz"
+                }
+            ]
+        }
+    ]
+}
+
+
+Sipariş İade Talepleri Servisi
+Sipariş İade Talepleri servisi için WSDL adresi: https://api.n11.com/ws/ReturnService.wsdl
+Bu servise dahil olan methodlar, parametrelerin listesi ve detaylı dökümantasyonu aşağıda yer almaktadır.
+
+İade Talepleri Listeleme (ClaimReturnList)
+İade Talebi Ret Sebepleri Listeleme (ClaimReturnDenyReasonType)
+İade Talebi Erteleme Sebepleri Listeleme (ClaimReturnPendingReasonType)
+İade Talebi Onaylama (ClaimReturnApprove)
+İade Talebi Erteleme (ClaimReturnPending)
+İade Talebi Reddetme (ClaimReturnDeny)
+İade Talepleri Listeleme (ClaimReturnList)
+Mağazaya gelen sipariş iade taleplerini liste halinde yollayan servis. Her sayfada 20 iade bilgisi gelmektedir.
+
+API bilgileri haricinde zorunlu parametre bulunmamaktadır.
+Dikkat Edilmesi Gerekenler;
+
+searchData.status alanı boş ya da alabileceği parametre değerleri dışında bir değer gönderilmesi durumunda default olarak REQUESTED statülü iade talepleri listelenmektedir.
+Parametre	Parametre Değer	Açıklama
+auth.appKey	 	API Key
+auth.appSecret	 	API Secret
+searchData.status	“ REQUESTED”: İade Talebi Geldi
+“ CANCELLED”: İptal Edildi
+“ DENIED”: Reddedildi
+“ PENDING”: Erteleme Talep Edildi
+“ PENDED”: Değerlendirme Ertelendi
+“ APPROVED”: İade Onaylandı
+“ MANUAL_REFUND” : Manuel Para İadesi Tamamlandı
+“ ALL”: Bütün iade durumları	Sipariş iade talep durumu
+searchData.executer	“ BUYER”: Alıcı
+“ SELLER”: Satıcı
+“ OPERATOR”: Operatör
+“ SYSTEM”: Sistem
+“ SHIPMENT”: Kargo Şirketi	İşlemi yapan bilgisi
+searchData.searchInfoType	“ BUYEREMAIL”: Alıcı Mail Adresi
+“ RECIPIENTS”: Teslim Alan
+“ BUYERNAME”: Alıcı Adı Soyadı
+“ ORDERID”: Sipariş Numarası
+“ PRODUCTID”: n11 Ürün Kodu	İade talebi detayı aramada searchData.searchQuery ile arama yapılacaksa gönderilmelidir, arama detayı tipini belirtir.
+searchData.searchQuery	 	searchData.searchInfoType ‘ a göre arama yapılmak istenen kelime / kod.
+searchData.sender	“ SELLER”: Satıcı gönderir
+“ N11”: n11 depo gönderir
+“ ALL”: Tümü	Sorgulamada kullanılabilecek gönderici tipi, gönderilmediği taktirde default değer "SELLER" olarak alınır.
+searchData.period.startDate	 	İade talebi gelme tarihi başlangıç. (dd/mm/yyyy)
+searchData.period.endDate	 	İade talebi gelme tarihi bitiş. (dd/mm/yyyy)
+pagingData.currentPage	 	Gösterilen sayfa numarası (currentpage 0 ile başlar).
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da  “failure” durum bilgilerini döner
+claimReturnList.claimReturn.claimReturnId	İade talep idsi
+claimReturnList.claimReturn.status	İade durumu
+claimReturnList.claimReturn.executer	İşlemi yapan bilgisi
+claimReturnList.claimReturn.sender	Gönderici tipi, SELLER: Satıcı gönderir N11: n11 depo gönderir
+claimReturnList.claimReturn.returnReasonType	İade nedeni
+claimReturnList.claimReturn.returnReasonDescription	İade açıklaması
+claimReturnList.claimReturn.orderNumber	Sipariş numarası
+claimReturnList.claimReturn.sellerCampaignNumber	Mağaza Gönderi Kampanya No
+claimReturnList.claimReturn.shipmentMethod	Teslimat Metodu
+claimReturnList.claimReturn.bundleName	Kampanya Adı (Var ise)
+claimReturnList.claimReturn.requestDate	Talep Tarihi
+claimReturnList.claimReturn.pendingRequestDate	Erteleme Talep Tarihi
+claimReturnList.claimReturn.pendedDate	Erteleme Tarihi
+claimReturnList.claimReturn.cancelledDate	İadeTarihi
+claimReturnList.claimReturn.deniedDate	Ret Tarihi
+claimReturnList.claimReturn.approvedDate	Onay Tarihi
+claimReturnList.claimReturn.sellerShipmentCompany	Mağaza Gönderi Kargo Şirketi
+claimReturnList.claimReturn.sellerTrackingNumber	Mağaza Gönderi Takip No
+claimReturnList.claimReturn.productId	Ürün Kodu
+claimReturnList.claimReturn.productName	Ürün Adı
+claimReturnList.claimReturn.attributesNames	Ürün Özelliği
+claimReturnList.claimReturn.quantity	İade talebi yapılan ürün adedi
+claimReturnList.claimReturn.unitPrice	Birim Fiyatı
+claimReturnList.claimReturn.finalPrice	Ödenen Tutar
+claimReturnList.claimReturn.shipmentCompany	Kargo Şirketi
+claimReturnList.claimReturn.trackingNumber	Kargo Takip No
+claimReturnList.claimReturn.campaignNumber	Kampanya No
+claimReturnList.claimReturn.deliveryFeeType	Kargo Ücretinin kimin tarafından ödendiği bilgisi;
+
+‘ByBuyer’  Alıcı Öder
+‘BySeller’  Mağaza Öder
+‘Conditional’  Şartlı Kargo
+claimReturnList.claimReturn.buyerPhone	Müşterinin Telefon Numarası
+claimReturnList.claimReturn.buyerEmail	Müşterinin Email Adresi
+claimReturnList.claimReturn.buyerName	Müşterinin Adı Soyadı
+claimReturnList.claimReturn.paymentDate	Ödeme Tarihi
+pagingData.currentPage	Gösterilen sayfa numarası (currentpage 0 ile başlar)
+pagingData.pageSize	Sayfadaki madde sayısı
+pagingData.totalCount	Toplam madde sayısı
+pagingData.pageCount	Toplam sayfa sayısı
+Örnek Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:ClaimReturnListRequest>
+            <auth>
+                <appKey>***********</appKey>
+                <appSecret>****</appSecret>
+            </auth>
+            <searchData>
+                <status>ALL</status>
+                <executer></executer>
+                <searchInfoType></searchInfoType>
+                <searchQuery></searchQuery>
+                <sender></sender>
+                <period>
+                    <startDate>01/05/2025</startDate>
+                    <endDate>07/05/2025</endDate>
+                </period>
+            </searchData>
+            <pagingData>
+                <currentPage>0</currentPage>
+            </pagingData>
+        </sch:ClaimReturnListRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+   <SOAP-ENV:Header/>
+   <SOAP-ENV:Body>
+      <ns3:ClaimReturnListResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+         <result>
+            <status>success</status>
+         </result>
+         <claimReturnList>
+            <claimReturn>
+               <attributesNames>Mavi_256 GB</attributesNames>
+               <buyerEmail>****@n11.com</buyerEmail>
+               <buyerName>Ad Soyad</buyerName>
+               <buyerPhone>5XXXXXXXXX</buyerPhone>
+               <campaignNumber>112698393384000</campaignNumber>
+               <cancelledDate>08/05/2025</cancelledDate>
+               <claimReturnId>25391658</claimReturnId>
+               <deliveryFeeType>Conditional</deliveryFeeType>
+               <executer>BUYER</executer>
+               <finalPrice>1000</finalPrice>
+               <orderNumber>123456789000</orderNumber>
+               <paymentDate>05/05/2025</paymentDate>
+               <productId>623456789</productId>
+               <productName>Deneme TedMx Mavi 256 GB</productName>
+               <quantity>1</quantity>
+               <requestDate>07/05/2025</requestDate>
+               <returnReasonDescription>Ürün kutusu hasarlı geldi.</returnReasonDescription>
+               <returnReasonType>Hasarlı Paket</returnReasonType>
+               <sellerTrackingNumber/>
+               <sender>SELLER</sender>
+               <shipmentMethod>Shipping</shipmentMethod>
+               <skuId>127278683000/skuId>
+               <status>CANCELLED</status>
+               <unitPrice>1000</unitPrice>
+            </claimReturn>
+            <claimReturn>
+               <attributesNames>Siyah_256 GB</attributesNames>
+               <buyerEmail>****@n11.com</buyerEmail>
+               <buyerName>Ad Soyad</buyerName>
+               <buyerPhone>5XXXXXXXXX</buyerPhone>
+               <campaignNumber>112197793384000</campaignNumber>
+               <claimReturnId>25383473</claimReturnId>
+               <deliveryFeeType>Conditional</deliveryFeeType>
+               <executer>SHIPMENT</executer>
+               <finalPrice>1000</finalPrice>
+               <orderNumber>123456789001</orderNumber>
+               <paymentDate>24/04/2025</paymentDate>
+               <productId>623456780</productId>
+               <productName>Deneme TedMx Siyah 256 GB</productName>
+               <quantity>1</quantity>
+               <requestDate>01/05/2025</requestDate>
+               <returnReasonDescription>İade etmek istiyorum, kutusu açılmadı.</returnReasonDescription>
+               <returnReasonType>Vazgeçtim</returnReasonType>
+               <sellerTrackingNumber/>
+               <sender>SELLER</sender>
+               <shipmentCompany>Sürat Kargo</shipmentCompany>
+               <shipmentMethod>Shipping</shipmentMethod>
+               <skuId>127278683000</skuId>
+               <status>REQUESTED</status>
+               <trackingNumber>12306601382000</trackingNumber>
+               <unitPrice>1000</unitPrice>
+            </claimReturn>
+         </claimReturnList>
+         <pagingData>
+            <currentPage>0</currentPage>
+            <pageSize>20</pageSize>
+            <totalCount>2</totalCount>
+            <pageCount>1</pageCount>
+         </pagingData>
+      </ns3:ClaimReturnListResponse>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+Örnek Request ( OrderNumber ile sorgulama )
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:ClaimReturnListRequest>
+            <auth>
+                <appKey>***********</appKey>
+                <appSecret>****</appSecret>
+            </auth>
+            <searchData>
+                <status>ALL</status>
+                <executer></executer>
+                <searchInfoType>ORDERID</searchInfoType>
+                <searchQuery>123456789000</searchQuery>
+                <sender></sender>
+                <period>
+                    <startDate></startDate>
+                    <endDate></endDate>
+                </period>
+            </searchData>
+            <pagingData>
+                <currentPage>0</currentPage>
+            </pagingData>
+        </sch:ClaimReturnListRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3:ClaimReturnListResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+            <claimReturnList>
+                <claimReturn>
+                    <attributesNames/>
+                    <buyerEmail>****@n11.com</buyerEmail>
+                    <buyerName>Ad Soyad</buyerName>
+                    <buyerPhone>5XXXXXXXXX</buyerPhone>
+                    <claimReturnId>12345</claimReturnId>
+                    <deliveryFeeType>BySeller</deliveryFeeType>
+                    <finalPrice>100</finalPrice>
+                    <orderNumber>123456789000</orderNumber>
+                    <paymentDate>10/01/2025</paymentDate>
+                    <productId>1234</productId>
+                    <productName>Test İade Ürünü</productName>
+                    <quantity>1</quantity>
+                    <requestDate>01/01/2025</requestDate>
+                    <returnReasonDescription>deneme</returnReasonDescription>
+                    <returnReasonType>Farklı ürün ulaştı</returnReasonType>
+                    <sellerTrackingNumber/>
+                    <sender>SELLER</sender>
+                    <shipmentCompany>Sürat</shipmentCompany>
+                    <shipmentMethod>Shipping</shipmentMethod>
+                    <status>REQUESTED</status>
+                    <trackingNumber>41340000</trackingNumber>
+                    <unitPrice>100</unitPrice>
+                </claimReturn>
+                <pagingData>
+                    <currentPage>0</currentPage>
+                    <pageSize>20</pageSize>
+                    <totalCount>1</totalCount>
+                    <pageCount>1</pageCount>
+                </pagingData>
+        </ns3:ClaimReturnListResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+İade Talebi Ret Sebepleri Listeleme (ClaimReturnDenyReasonType)
+Ret sebeplerini listeleyen servis. İade talebi ret servisinde (ClaimReturnDenyRequest) kullanılacaktır.
+
+API bilgileri haricinde zorunlu parametre bulunmamaktadır.
+Parametre	Açıklama
+Auth.appKey	API Key
+Auth.appSecret	API Secret
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da “failure” durum bilgilerini döner.
+pendingReasonTypeDataList.id	Erteleme sebebi idsi.
+pendingReasonTypeDataList.value	Erteleme sebebi açıklaması.
+Örnek Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:ClaimReturnDenyReasonTypesRequest>
+            <auth>
+                <appKey>************************</appKey>
+                <appSecret>********</appSecret>
+            </auth>
+        </sch:ClaimReturnDenyReasonTypesRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+   <SOAP-ENV:Header/>
+   <SOAP-ENV:Body>
+      <ns3:ClaimReturnDenyReasonTypesResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+         <result>
+            <status>success</status>
+         </result>
+         <denyReasonTypeDataList>
+            <id>21</id>
+            <value>Özel Promosyonlu Ürün</value>
+         </denyReasonTypeDataList>
+         <denyReasonTypeDataList>
+            <id>1</id>
+            <value>Ürün kargoya sağlam teslim edildi</value>
+         </denyReasonTypeDataList>
+         <denyReasonTypeDataList>
+            <id>2</id>
+            <value>Ürün zarar görmüş</value>
+         </denyReasonTypeDataList>
+         <denyReasonTypeDataList>
+            <id>22</id>
+            <value>İptal ve İadesi kabul edilmeyen Ürün</value>
+         </denyReasonTypeDataList>
+         <denyReasonTypeDataList>
+            <id>23</id>
+            <value>Turun kalkış gününe son 24 saat kalması</value>
+         </denyReasonTypeDataList>
+         <denyReasonTypeDataList>
+            <id>3</id>
+            <value>Mevzuata Göre İadesi Kabul Edilmeyen Ürün</value>
+         </denyReasonTypeDataList>
+         <denyReasonTypeDataList>
+            <id>24</id>
+            <value>Turun kalkış gününe son 48 saat kalması</value>
+         </denyReasonTypeDataList>
+         <denyReasonTypeDataList>
+            <id>25</id>
+            <value>Turun kalkış gününe son 72 saat kalması</value>
+         </denyReasonTypeDataList>
+         <denyReasonTypeDataList>
+            <id>41</id>
+            <value>İade Ürün Mağazaya Ulaşmadı</value>
+         </denyReasonTypeDataList>
+      </ns3:ClaimReturnDenyReasonTypesResponse>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+İade Talebi Erteleme Sebepleri Listeleme (ClaimReturnPendingReasonType)
+Erteleme sebeplerini listeleyen servis. İade talebi erteleme servisinde (ClaimReturnPending) kullanılacaktır.
+
+API bilgileri haricinde zorunlu parametre bulunmamaktadır.
+Parametre	Açıklama
+Auth.appKey	API Key
+Auth.appSecret	API Secret
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da “failure” durum bilgilerini döner.
+denyReasonTypeDataList.id	Ret sebebi idsi.
+denyReasonTypeDataList.value	Ret sebebi açıklaması.
+Örnek Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:ClaimReturnPendingReasonTypesRequest>
+            <auth>
+                <appKey>************************</appKey>
+                <appSecret>********</appSecret>
+            </auth>
+        </sch:ClaimReturnPendingReasonTypesRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+   <SOAP-ENV:Header/>
+   <SOAP-ENV:Body>
+      <ns3:ClaimReturnPendingReasonTypesResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+         <result>
+            <status>success</status>
+         </result>
+         <pendingReasonTypeDataList>
+            <id>1</id>
+            <value>Ürün servis tarafından incelenecek</value>
+         </pendingReasonTypeDataList>
+         <pendingReasonTypeDataList>
+            <id>21</id>
+            <value>Ürün acente tarafından incelenecek</value>
+         </pendingReasonTypeDataList>
+         <pendingReasonTypeDataList>
+            <id>2</id>
+            <value>Ürün fabrika tarafından incelenecek</value>
+         </pendingReasonTypeDataList>
+         <pendingReasonTypeDataList>
+            <id>3</id>
+            <value>Gerekli kontroller yapılacak</value>
+         </pendingReasonTypeDataList>
+      </ns3:ClaimReturnPendingReasonTypesResponse>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+İade Talebi Onaylama (ClaimReturnApprove)
+İade talebini onaylama servisi.
+
+Tüm request parametreleri zorunludur.
+Parametre	Açıklama
+Auth.appKey	API Key
+Auth.appSecret	API Secret
+claimReturnId	Onaylanacak iade talebinin idsi.
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da “failure” durum bilgilerini döner.
+Örnek Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:ClaimReturnApproveRequest >
+            <auth>
+                <appKey>************************</appKey>
+                <appSecret>********</appSecret>
+            </auth>
+            <claimCancelId>1234567</claimCancelId>
+        </sch:ClaimReturnApproveRequest >
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3: ClaimReturnApproveResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+        </ns3: ClaimReturnApproveResponse >
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+İade Talebi Erteleme (ClaimReturnPending)
+İade talebini ertleme servisi.
+
+Tüm request parametreleri zorunludur.
+Parametre	Açıklama
+Auth.appKey	API Key
+Auth.appSecret	API Secret
+claimReturnlId	Ertelenecek iade talebinin idsi.
+pendingReasonId	Ertleme sebebinin idsi. ClaimReturnPendingReasonType servisinden alınacaktır.
+pendingDayCount	Erteleme Gün Sayısı.
+pendingReasonNote	Erteleme Açıklaması.
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da “failure” durum bilgilerini döner.
+Örnek Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:ClaimReturnPendingRequest>
+            <auth>
+                <appKey>************************</appKey>
+                <appSecret>********</appSecret>
+            </auth>
+            <claimReturnId>123456789</claimReturnId>
+            <pendingReasonId>123</pendingReasonId>
+            <pendingDayCount>1</pendingDayCount>
+            <pendingReasonNote>açıklama</pendingReasonNote>
+        </sch:ClaimReturnPendingRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3: ClaimReturnPendingResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+        </ns3: ClaimReturnPendingResponse >
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+İade Talebi Reddetme (ClaimReturnDeny)
+İade talebini reddetme servisi.
+
+API bilgileri, claimReturnlId, denyReasonId, denyReasonNote parametreleri zorunludur.
+Dikkat Edilmesi Gerekenler;
+
+İade ret sebebi “Ürün Mağazaya Ulaşmadı” ise returnShipmentType alanı boş bırakılmalıdır. Alıcının talep için girmiş olduğu takip numarası otomatik olarak gönderilecektir.
+“Ürün Mağazaya Ulaşmadı” harici ret sebeplerinde returnShipmentType alanı CUSTOM gönderilirse, ürünü kargoya verdikten sonra trackingNumber alanında kargo takip numarasını göndermeniz gerekmektedir.
+“Ürün Mağazaya Ulaşmadı” harici ret sebeplerinde returnShipmentType alanı CAMPAIGN gönderilirse, shipmentCompanyId , trackingNumber , deliveryReceiptNumber alanları boş bırakılmalıdır. Ürünü iade için henüz kargoya vermediyseniz kampanya kodu kullanarak belirtilen kargo şirketi ile gönderdiğinizde, takip kodu sisteme otomatik olarak tanımlanır, ve iade talebiniz otomatik olarak onaylanmış olur. Onayladığınız takdirde ürünler için üretilecek olan kargo kampanya kodlarına claimReturnList metodundaki sellerCampaignNumber yani "Mağaza Gönderi Kampanya No" alanından ulaşabilirsiniz.
+returnShipmentType “CUSTOM” ve Ret sebebi “Ürün Mağazaya Ulaşmadı” değil ise, diğer durumlar için trackingNumber ve shipmentCompanyId alanları boş bırakılmalıdır.
+Parametre	Parametre Değer	Açıklama
+Auth.appKey	 	API Key
+Auth.appSecret	 	API Secret
+claimReturnlId	 	Reddelilecek iade talebinin idsi.
+denyReasonId	 	Reddelilecek sebebinin idsi. ClaimReturnDenyReasonType servisinden alınmalıdır.
+denyReasonNote	 	Ret sebebi açıklaması
+returnShipmentType	" CUSTOM" = Takip Numarası İle
+" CAMPAIGN" = Kargo Kampanyası İle	Gönderim Tipi.
+shipmentCompanyId	 	Kargo şirketi Idsi. ShipmentCompanyService servisinden alınmalıdır.
+trackingNumber	 	Takip Numarası.
+deliveryReceiptNumber	 	Teslim Fiş No.
+imageFirstUrl	 	İade Ürün Görseli 1
+imageSecondUrl	 	İade Ürün Görseli 2
+imageThirdUrl	 	İade Ürün Görseli 3
+videoUrl	 	İade Ürün Video
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da “failure” durum bilgilerini döner.
+Örnek Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:ClaimReturnDenyRequest>
+            <auth>
+                <appKey>************************</appKey>
+                <appSecret>********</appSecret>
+            </auth>
+            <claimReturnId>123456789</claimReturnId>
+            <denyReasonId>123</denyReasonId>
+            <denyReasonNote>aynı gün teslimat iade talebi red</denyReasonNote>
+            <returnShipmentType></returnShipmentType>
+            <shipmentCompanyId></shipmentCompanyId>
+            <trackingNumber></trackingNumber>
+            <deliveryReceiptNumber>123456</deliveryReceiptNumber>
+            <imageFirstUrl>https://n11scdn.akamaized.net/a1/org/25/10/22/88/02/47/34/00/53/23/30/49/45782045207936911195.jpeg</imageFirstUrl>
+            <imageSecondUrl></imageSecondUrl>
+            <imageThirdUrl></imageThirdUrl>
+            <videoUrl></videoUrl>
+        </sch:ClaimReturnDenyRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3: ClaimReturnDenyResponsexmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+        </ns3: ClaimReturnDenyResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+RestAPI Ürün Hata Mesajları
+ 
+
+İşlem	Hata Mesajı	Çözüm
+Ürün Yükleme	Girdiğiniz X seller stock code tarafınızdan kullanılmaktadır. Başka bir seller stock code ile kayıt oluşturabilirsiniz.	Satıcı stok kodu kontrol edilmelidir. Gönderilen stok kodu n11 mağazasında yer almaktadır. 
+Ürün Yükleme	Girdiğiniz X nolu katalog id X mağaza ürün kodu ve X seller stock kodu ile ürün listenizde mevcuttur.	Gönderilen ürün içeride mevcut bir ürün ile çakışmaktadır, ürün bazlı çakışan alanlar revize edilerek tekrar gönderim sağlanabilir.
+Ürün Yükleme	Marka ve Kategori id değerlerini doğru girdiğinizi kontrol edin. Doğru girilmişse, ürününüzün kaydedilebilmesi için daha fazla ayrıntı vermelisiniz. Ürün adı örneği gerekli ise Search API ile ürün arama yapabilirsiniz	Ürün başlık karakteri az girilmiş olabilir, kategorinize uygun başlıkta gönderim sağlayabilirsiniz ya da ürün başlık alanı n11 katalogu ile eşleşiyor olabilir bu durumda ürün başlığını farklılaştırmak için sonuna kod ekleyebilirsiniz.
+Ürün Yükleme	Kataloğa ürün önerme başarısız oldu. Katalog mesaj Girdiğiniz ürün bilgisi ürün grubu bilgisiyle uyumlu değil.	Gönderilen ürün n11 kataloğunda farklı bir kategoride ya da doğru kategori ile farklı bir markayla gönderildiğinde bu hata alınmaktadır.
+Ürün Yükleme	
+Üzgünüz, seçtiğiniz kategoriye ürün yükleyemezsiniz. Bu kategoride ürün yükleyebilmek için tedarik faturalarınız ile birlikte https://magazadestek.n11.com/talepler linkinden talep açmanız durumunda destek sağlanacaktır.
+Üzgünüz, seçtiğiniz kategoriye girmiş olduğunuz marka ile ürün yükleyemezsiniz. Bu markada ürün yükleyebilmek için tedarik faturalarınız ile birlikte https://magazadestek.n11.com/talepler linkinden talep açmanız durumunda destek sağlanacaktır.
+ 
+
+Ürün orijinallik kontrolü kaynaklı bu hata mesajı dönmektedir, tedarik faturası ile talep oluşturmalısınız.
+
+Ürün Yükleme	Marka bilgisi girilmelidir.	Gönderilen ürün yükleme isteğinde marka özellik değeri yer almadığından bu hata mesajı dönmektedir.
+Ürün Yükleme	marka özellik değeri boş geçilemez.	Marka özellik değeri boş (null) değer gönderilmemelidir.
+Ürün Yükleme	X idli marka özellik değeri {categoryName}[{categoryId}] kategorisinde bulunmamaktadır.	Gönderilen marka değeri ilgili kategoride yer almadığından bu hata mesajı alınmaktadır, bu kategorilerde markanızın oluşması için isteğinizde marka özelliğini serbest giriş şeklinde göndermelisiniz.
+Ürün Yükleme	X idli {attributeName} özellik değeri {categoryName}[{categoryId}] kategorisinde bulunmamaktadır.	
+Belirtilen özellik değeri Id'si geçersiz ya da ilgili kategoride aynı değer yer almamaktadır, güncel kategori özellik listesi çekilerek tekrar eşleştirme yapılıp güncel değerler ile gönderim sağlanmalıdır.
+
+Ürün Yükleme	{attributeId} ID’li {attributeName} özellik alanı boş olamaz.	Örneğin X özellik zorunlu alan olduğu için uyarı verir. Zorunlu alanlar eşleştirme yapılmalıdır.
+Ürün Yükleme	İlk görsel boş olamaz	Görsel linklerinin gönderildiği alanda null değer kabul edilmemektedir.
+Ürün Yükleme	Kataloğa ürün önerme başarısız oldu. Katalog mesaj All Images are invalid	Gönderilen görsel linkleri geçersizdir, link erişimini ve görsel tipini kontrol etmelisiniz.
+Ürün Yükleme	vatRate alanı boş olamaz.	KDV oranı alanı zorunlu beklenmektedir, bu alan eksik olduğunda bu hata mesajı dönmektedir.
+Ürün Yükleme	X stockCode maxPurchaseQuantity 1 değerinden büyük yada eşit olmalı	Maksimum satın alım limiti olmayacaksa parametre gönderilmemelidir, 0 gönderildiğinde ilgili hata mesajı dönmektedir.
+Ürün Yükleme	X stockCode vatRate VatRate 0,1,10,20 değerlerinden biri olmak zorundadır.	Girilen KDV oranı değeri geçerli değerlerin dışında gönderilmiştir.
+Ürün Yükleme	Ürün ekleme isteğinizde 15 karakter altında ürün adları tespit edilmiştir. Bu değerler için işlem sağlanamamaktadır.	Ürün adı minimum 15 karakter olmalıdır, daha kısa ürün başlıklarınız var ise revize edip tekrar gönderim sağlayabilirsiniz.
+Ürün Yükleme	catalogId alanı geçersizdir.	Gönderilen n11 katalog Id değeri hatalıdır, ürünün doğru katalog Id değeri gönderim sağlanmalıdır.
+Ürün Yükleme	Girilen catalogId katalog tarafından reddedildi. Farklı bir catalogId giriniz veya catalogId olmadan öneri yapınız.	Gönderilen n11 katalog Id ile kayıtlı katalog ürünü onaylanmamıştır, onaylanmış olan katalog Id değeri gönderim sağlanmalıdır.
+Ürün Yükleme	shipmentTemplate alanı geçersizdir.	Teslimat şablonu hatalı gönderildiğinde bu hata mesajı dönmektedir. n11 satıcı panelinizde yer alan teslimat şablonunu seçmelisiniz.
+Ürün Yükleme	X stockCode shipmentTemplate boş değer olamaz.	Teslimat şablonu alanı gönderimi zorunludur.
+Ürün Yükleme	
+X stockCode preparingDay 1 değerinden büyük yada eşit olmalı.
+X stockCode preparingDay 30 değerinden küçük yada eşit olmalı
+Kargo gönderim süresi 1 ve 30 aralığında seçilebilmektedir, 1'den düşük ya da 30'dan fazla kabul edilmemektedir.
+Ürün Yükleme	
+X id li kategorideki Y id li özellik için sadece valueId ile ürün girişi yapılabilir. GetCategoryAttributeValue metodu üzerinden valueId bilgilerine ulaşabilirsiniz.
+
+Bu özellik serbest girişe kapalıdır, n11 kategorisinde yer alan özellikleri göndermeniz gerekmektedir ( iscustomValue:False olan özelliklerde valueId gönderilmelidir, GetCategoryAttribute servislerinden güncel değerleri çekip gönderilmelidir ).
+
+Ürün Yükleme	Kataloğa ürün önerme başarısız oldu. Katalog mesaj Ürün Adı alanında X sözcükleri kullanılamaz.	Yasaklı kelime kontrolü, ürün başlığında belirtilen yasaklı kelime yer almamalıdır.
+Ürün Yükleme	Bu kelimeler yasaklıdır. Kelimeler : X	Yasaklı kelime kontrolü, ürün açıklamasında belirtilen yasaklı kelime almamalıdır.
+Ürün Yükleme	category alanı geçersizdir	Ürün eğer daha önce canlıda olan fakat şuan kapatılan bir category ile eşleştirildiyse ya da geçersiz bir id değeri gönderildiyse bu hata alınmaktadır. Bu durumda kategori eşleştirmesini tekrar yapmalısınız.
+Ürün Yükleme	Önerdiğiniz kategori ürün ile uyumlu değildir, ürününüzü {categoryId} idli {categoryName} kategorisinde önerebilirsiniz.	Ürünü hata mesajında belirtilen kategoride önermelisiniz.
+Ürün Yükleme	description alanı boş olamaz.	Ürün açıklama alanı boş olduğunda bu hata alınmaktadır, ürün açıklamasını kontrol etmelisiniz.
+Ürün Yükleme	description alanı geçersizdir.	Açıklama alanında fazla sayıda açık HTML tag vb. bulunmaktadır, düzenleme yaparak tekrar gönderim sağlanmalıdır.
+Ürün Yükleme	Teslimat tipini Diğer seçiniz.	Dijital kod gönderimi sağlanıyor ise satıcı panelinden kargo şablonunda Teslimat Metodu : Diğer seçilmelidir.
+Ürün Yükleme	{stockCode}, catalogId, barcode veya images ve attributes aynı anda boş olamaz.	Belirtilen stok kodu için barkod ya da katalog id değeri gönderilmiyor ise, kataloğa ürün önerisi için ürün özellikleri ve ürün görselleri gönderilmelidir.
+Ürün Yükleme	Bu ürün için girdiğiniz fiyatta fahiş fiyat düşüklüğü olduğundan dolayı fiyat hatası riski içermektedir (Minimum X TL). Lütfen fiyatı kontrol ediniz. Dilerseniz mağaza destek merkezinden talep oluşturabilirsiniz.	Bu hata mesajı satıcılara düşük fiyatla ürün yüklememeleri için yükleme engellendiğinden dolayı dönmektedir. Belirtilen minimum fiyattan daha düşük fiyat gönderilemez.
+Ürün Yükleme	Bu ürün için girdiğiniz fiyatta fahiş fiyat artışı olduğundan dolayı fiyat hatası riski içermektedir (Maximum X TL). Lütfen fiyatı kontrol ediniz. Dilerseniz mağaza destek merkezinden talep oluşturabilirsiniz.	Bu hata mesajı satıcılara hatalı/yüksek fiyatla ürün yüklememeleri için yükleme engellendiğinden dolayı dönmektedir. Belirtilen maksimum fiyattan daha yüksek fiyat gönderilemez.
+Ürün Yükleme	X stok kodlu üründe listPrice salePrice dan küçük olamaz.	Liste fiyatı, satış fiyatından küçük olamaz. Ürünlerinizde indirimli fiyat mevcut ise üzeri çizili fiyat (Liste fiyatı) daha yüksek olmalıdır.
+Ürün Yükleme	X, ..., Y stok kodlu ürünlerinizde aynı attributes kullanılmıştır. attributes : {title}[attributeId-value]	Ürün oluşturma isteğinde ürün başlığı ve özellikleri aynı olan birden fazla ürün mevcuttur, mükerrer ürün kaydı oluşturulamaz.
+Ürün Yükleme	X, ..., Y stok kodlu ürünlerinizde aynı barcode kullanılmıştır. barcode : {barcode}	Ürün oluşturma isteğinde mükerrer barkod değeri kullanılmıştır, tekil gönderilmelidir.
+Ürün Yükleme	X, ..., Y stok kodlu ürünlerinizde aynı catalogId kullanılmıştır. catalogId : {catalogId}	Ürün oluşturma isteğinde mükerrer katalog Id değeri kullanılmıştır, tekil gönderilmelidir.
+Ürün Yükleme	Farklı ürünlerinizde aynı Stok Kodu kullanılmıştır. Stok Kodu : X	Ürün oluşturma isteğinde mükerrer stok kodu kullanılmıştır, tekil gönderilmelidir.
+Ürün Yükleme	{categoryId} id li {categoryName} kategorisinde mainId girişi zorunludur. Slicer True olan kategorilerde mainId girilmesi gerekmektedir.	Model Kodu alanı zorunlu olan kategorilerde model kodu gönderilmezse bu mesaj dönmektedir.
+Ürün Yükleme / Ürün Güncelleme	X stok kodlu üründe listPrice alanında virgülden sonrası 2 haneden fazla tanımlanmıştır.	Liste fiyatı alanında küsürat 2 haneden uzun olamaz.
+Ürün Yükleme / Ürün Güncelleme	X stok kodlu üründe salePrice alanında virgülden sonrası 2 haneden fazla tanımlanmıştır.	Satış fiyatı alanında küsürat 2 haneden uzun olamaz.
+Ürün Güncelleme	Girilen X SellerStockCode ile mağazanızda ürün bulunamamaktadır.	Hata mesajında yer alan stok kodlu ürün mağazanızda olmayıp güncelleme gönderildiğinde alınan bir hatadır. İlgili satıcı stok kodlu ürünü n11'e yükledikten sonra güncelleme yapabilirsiniz.
+Ürün Güncelleme	Ürünü yalnızca onaylı ve beklemede statülerini seçerek güncelleyebilirsiniz.	Ürün onay durumu "Onaylı" ya da "Beklemede" statüsü haricindeyken güncelleme yapılamamaktadır. Ürün aktarım sonucu, ürün "Katalog Onay Sürecinde" statüsündeyken ürün güncelleme isteği gönderildiğinde bu hata mesajı dönecektir.
+Ürün Güncelleme	Ürün, katalog tarafından reddedildi. Satıcı panelinden red nedenini kontrol edip ürünü yeniden onaya gönderebilirsiniz.	Ürün katalogtan reddedildiğinde bu hata alınmaktadır. Reddedilen ürünler satıcı panelden silinip ret nedenine göre düzenlenip tekrar gönderilmelidir.
+ 
+
+RestAPI Sipariş Servis Bilgilendirmeleri
+ 
+
+RestAPI sipariş statüleri tablonun sağ tarafındaki sütunda yer almaktadır. Eski statülere göre mapleme yapabilirsiniz.
+ 
+
+Sipariş maddesi durum bilgisi
+1:İşlem Bekliyor	Verdiğimiz bir değer değildir.
+2:Ödendi	Created
+3:Geçersiz	Verdiğimiz bir değer değildir.
+4:İptal Edilmiş	Canceled
+5:Kabul Edilmiş	Picking
+6:Kargoda	Shipped
+7:Teslim Edilmiş	Delivered
+8:Reddedilmiş	UnSupplied
+9:İade Edildi	Delivered
+10:Tamamlandı	Delivered
+11: İade İptal Değişim Talep Edildi	Delivered
+12: İade İptal Değişim Tamamlandı	Delivered
+13:Kargoda İade	Shipped
+14:Kargo Yapılması Gecikmiş	Created
+15:Kabul Edilmiş Ama Zamanında Kargoya Verilmemiş	Picking
+16:Teslim Edilmiş İade,	Delivered
+17:Ödeme Ertelendi	Delivered
+51: İptal Talep Edildi	Picking
+52: İade Talep Edildi(sipariş tamamlanması sonrası)	Delivered
+53: Değişim Talep Edildi(sipariş tamamlanması sonrası)	Delivered
+SOAP API DetailedOrderList ve RestAPI GetShipmentPackages parametre karşılıkları aşağıdaki tabloda yer almaktadır.
+* ile belirtilen parametreler RestAPI sipariş listeleme servisinde yer almamaktadır.
+
+ 
+
+SOAP API	Rest API
+orderList.order.billingAddress.address	billingAddress.address
+orderList.order.billingAddress.city	billingAddress.city
+orderList.order.billingAddress.district	billingAddress.district
+orderList.order.billingAddress.fullName	billingAddress.fullName
+orderList.order.billingAddress.gsm	billingAddress.gsm
+orderList.order.billingAddress.neighborhood	billingAddress.neighborhood
+orderList.order.billingAddress.postalCode	billingAddress.postalCode
+orderList.order.billingAddress.taxHouse	billingAddress.taxHouse
+orderList.order.billingAddress.taxId	billingAddress.taxId
+orderList.order.billingAddress.tcId	billingAddress.tcId
+orderList.order.buyer.email	customerEmail
+orderList.order.buyer. fullName	customerfullName
+orderList.order.buyer.id	customerId
+orderList.order.buyer.taxId	taxId
+orderList.order.buyer.taxOffice	taxOffice
+orderList.order.buyer.tcId	tcIdentityNumber
+orderList.order.citizenshipId	*
+orderList.order.createDate	
+packageHistories.createdDate = 1731312671000
+
+packageHistories.status = Created
+
+orderList.order.id	*
+orderList.order.invoiceType	billingAddress.invoiceType
+orderList.order.orderItemList.orderItem.approvedDate	
+packageHistories.createdDate = 1731312671000
+
+packageHistories.status = Picking
+
+orderList.order.orderItemList.orderItem.attributes	lines.variantAttributes
+orderList.order.orderItemList.orderItem.bundle	*
+orderList.order.orderItemList.orderItem.commission	*
+orderList.order.orderItemList.orderItem.customTextOptionValues	lines.customTextOptionValues
+orderList.order.orderItemList.orderItem.deliveryFeeType	*
+orderList.order.orderItemList.orderItem.dueAmount	lines.dueAmount
+orderList.order.orderItemList.orderItem.id	lines.orderLineId
+orderList.order.orderItemList.orderItem.installmentChargeWithVAT	lines.installmentChargeWithVAT
+orderList.order.orderItemList.orderItem.mallDiscount	lines.mallDiscount
+orderList.order.orderItemList.orderItem.price	lines.price
+orderList.order.orderItemList.orderItem.productId	lines.productId
+orderList.order.orderItemList.orderItem.productName	lines.productName
+orderList.order.orderItemList.orderItem.productSellerCode	*
+orderList.order.orderItemList.orderItem.quantity	lines.quantity
+orderList.order.orderItemList.orderItem.sellerCouponDiscount	lines.sellerCouponDiscount
+orderList.order.orderItemList.orderItem.sellerDiscount	lines.sellerDiscount
+orderList.order.orderItemList.orderItem.sellerInvoiceAmount	lines.sellerInvoiceAmount
+orderList.order.orderItemList.orderItem.sellerStockCode	lines.stockCode
+orderList.order.orderItemList.orderItem.shipmenCompanyCampaignNumber	cargoTrackingNumber
+orderList.order.orderItemList.orderItem.shipmentInfo.campaignNumber	cargoTrackingNumber
+orderList.order.orderItemList.orderItem.shipmentInfo.campaignNumberStatus	*
+orderList.order.orderItemList.orderItem.shipmentInfo.shipmentCode	*
+orderList.order.orderItemList.orderItem.shipmentInfo.shipmentCompany.id	shipmentCompanyId
+orderList.order.orderItemList.orderItem.shipmentInfo.shipmentCompany.name	cargoProviderName
+orderList.order.orderItemList.orderItem.shipmentInfo.shipmentCompany.shortName	*
+orderList.order.orderItemList.orderItem.shipmentInfo.shipmentMethod	shipmentMethod
+orderList.order.orderItemList.orderItem.shipmentInfo.shippingDate	
+packageHistories.createdDate = 1731312671000
+
+packageHistories.status = Shipped
+
+orderList.order.orderItemList.orderItem.shipmentInfo.sppApproved	*
+orderList.order.orderItemList.orderItem.status	lines.orderItemLineItemStatusName ( Sipariş statü tablosunda eşleşen değerler mevcut )
+orderList.order.orderItemList.orderItem.stockKeepingUnitId	*
+orderList.order.orderItemList.orderItem.totalMallDiscountPrice	lines.totalMallDiscountPrice
+orderList.order.orderItemList.orderItem.updatedDate	lastModifiedDate
+orderList.order.orderItemList.orderItem.version	*
+orderList.order.orderNumber	orderNumber
+orderList.order.paymentType	*
+orderList.order.serviceItemList.serviceItem.intallmentChargeWithVAT	*
+orderList.order.serviceItemList.serviceItem.orderItemList.orderItem	*
+orderList.order.serviceItemList.serviceItem.orderItemType	*
+orderList.order.serviceItemList.serviceItem.price	*
+orderList.order.serviceItemList.serviceItem.quantity	*
+orderList.order.serviceItemList.serviceItem.sellerInvoiceAmount	*
+orderList.order.serviceItemList.serviceItem.totalDiscountPrice	*
+orderList.order.shippingAddress.address	shippingAddress.address
+orderList.order.shippingAddress.city	shippingAddress.city
+orderList.order.shippingAddress.district	shippingAddress.district
+orderList.order.shippingAddress.fullName	shippingAddress.fullName
+orderList.order.shippingAddress.gsm	shippingAddress.gsm
+orderList.order.shippingAddress.neighborhood	shippingAddress.neighborhood
+orderList.order.shippingAddress.postalCode	shippingAddress.postalCode
+orderList.order.shippingAddress.taxHouse	*
+orderList.order.shippingAddress.taxId	*
+orderList.order.shippingAddress.tcId	shippingAddress.tcId
+orderList.order.status	shipmentPackageStatus ( Sipariş statü tablosunda eşleşen değerler mevcut )
+orderList.order.totalAmount	totalAmount
+orderList.order.totalDiscountAmount	totalDiscountAmount
+ 
+
+SOAP DetailedOrderList servisinde yer almayan, RestAPI GetShipmentPackages servisine eklenen parametreler
+ 
+
+Rest API	Açıklama
+id	Sipariş Paket Numarası
+cargoSenderNumber	Kargo takip numarası
+cargoTrackingLink	Kargo takip linki
+installmentChargeWithVATprice	KDV dahil vade farkı
+lines.totalSellerDiscountPrice	Mağaza indirim toplamı
+agreedDeliveryDate	Maksimum kargolama tarihi
+packageHistories.createdDate	Tüm statülerin paket statü geçmişi bazlı tarihleri bu alanda yer almaktadır.
+packageHistories.status	Tüm statülerin paket statü geçmişi bu alanda yer almaktadır.
+sellerId	n11 satıcı ID bilgisi
+
+
+Sipariş Listeleme (GetShipmentPackages)
+GET https://api.n11.com/rest/delivery/v1/shipmentPackages
+
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+Servise 1 dakika içerisinde maksimum 1000 adet istek atılabilir.
+HTTP isteğinizi 'GET' methoduyla ilgili endpoint'e gönderin.
+Dikkat Edilmesi Gerekenler;
+Status parametresi her istekte tek bir değer alabilmektedir, birden fazla statü listelemek için statü bazlı istek atmanız gerekmektedir.
+2024 Kasım öncesi sipariş datası bu servisten verilmemektedir.
+Pagination yapısı kullanıyorsanız page 0 başlatarak responsede dönen totalPages alanını dikkate alarak content boş dönen sayfayı son sayfa olarak belirleyebilirsiniz.
+Bu servisten dönen sonuçlar son güncelleme tarihine göre sıralanacaktır, sıralamayı orderByDirection parametresini kullanarak DESC ( Yeniden eskiye ) ya da ASC ( Eskiden yeniye ) değeriyle listeleme yapabilirsiniz.
+Response Body içerisindeki parametre değerleri karakter sayısı ve veri tipleri sipariş sayısının doğal artışıyla beraber değişebilmektedir ( Örneğin orderNumber alanı 12 haneden 13 haneye çıkabilir, entegratör üzerinde tanımlama yapılırken bu durumlar göz önünde bulundurulması sağlıklı olacaktır ).
+Yalnızca startDate alanı girildiyse, girilen startDate'den sonraki 15 günlük kayıtlar listelenir.
+Yalnızca endDate alanı girildiyse, girilen endDate'den önceki 15 günlük kayıtlar listelenir.
+StartDate ve endDate alanları girilmiş fakat iki tarih arasında çok fazla fark varsa ( Örnek olarak 6 ay ya da 2 yıl gibi ) girilen endDate'den önceki son 15 günlük kayıtlar listelenecektir.
+Fatura edilecek toplam tutar için lines bloğundaki sellerInvoiceAmount alanını baz alabilirsiniz, bu alan ürün bazlı döneceğinden ürün sayısına göre dönen sellerInvoiceAmount alanlarını toplayarak sonuca ulaşabilirsiniz.
+Sipariş hesaplama denklemi için line bazlı (price * quantity) - (sellerDiscount + sellerCouponDiscount) = sellerInvoiceAmount ya da (price * quantity) - totalSellerDiscountPrice = sellerInvoiceAmount formüllerini kullanabilirsiniz.
+Response body alanında, lines bloğunda ürün bazlı detaylar dönmektedir, aşağıda yer alan cevap parametrelerine lines alanı bold olarak belirtilmiştir.
+Siparişleri paket güncelleme tarihine göre listelemek istiyorsanız orderByField parameterisin true göndererek tarih parametrelerini kullanabilirsiniz, örneğin startDate alanında başlangıç tarihi ve orderByField true göndererek belirttiğiniz tarih itibariyle paketleri son güncelleme tarihine göre listeleyebilirsiniz.
+Konuma Özel Teslimat siparişlerinde Paket Numarası ( id parametresi ) null dönmektedir. Kargolama süreci satıcıya ait olup, n11 satıcı paneli üzerinden yönetilebilmektedir.
+Satıcı özelinde kampanya dahilinde komisyon indirimi yer alabilmektedir, ürün komisyon tutarı hesaplıyorsanız commissionRate - sellerCampaignCommissionRate formülünden kalan değer üzerinden ürün komisyon oranına ulaşabilirsiniz.
+Content altında yer alan micro parametresinin true olması, siparişin e-ihracat kapsamında olduğunu göstermektedir. Parametre null olan siparişler yurt içi siparişleridir.
+e-İhracat kapsamındaki siparişlerde micro parametresi true olarak dönecektir. Bu siparişler için faturaların ihracat faturası olarak düzenlenmesi ve ilgili fatura bilgilerinin servisler aracılığıyla n11'e iletilmesi gerekmektedir.
+Parametre	Parametre Değer	Açıklama	Tip
+startDate	 Timestamp (milliseconds) ve GMT +3 olarak gönderilmelidir.	Belirtilen tarihten sonraki siparişleri getirir.	long ( timestamp )
+endDate	Timestamp (milliseconds) ve GMT +3 olarak gönderilmelidir.	Belirtilen tarihe kadar olan siparişleri getirir.	long ( timestamp )
+page	 	Sadece belirtilen sayfadaki bilgileri döndürür	int
+size	Maksimum 100	Bir sayfada listelenecek maksimum adeti belirtir.	int
+orderNumber	 	Sipariş numarası ile sorgulama yapılır.	string
+packageIds	 	Paket numarası ile sorgulama yapılır.	string
+status	Created, Picking, Shipped, Cancelled, Delivered, Unpacked, UnSupplied	Belirtilen statülere göre siparişleri getirir.	string
+orderByDirection	ASC	Eskiden yeniye doğru sıralar.	string
+DESC	Yeniden eskiye doğru sıralar.	string
+orderByField	true, false	true değer girildiğinde, paketin lastModifiedDate alanına göre sorgulama yapabilirsiniz.	string
+sender	SELLER : Satıcı gönderir
+N11 : n11 depo gönderir
+ALL : Tümü	Sorgulamada kullanılabilecek gönderici tipi, gönderilmediği taktirde default değer "SELLER" olarak alınır.	string
+      
+Parametre (Cevap)	Açıklama
+billingAddress	Fatura adresi
+billingAddress.countryCode	Alıcı ülke kodu
+billingAddress.invoiceType	Fatura tipi, 1: Bireysel 2: Kurumsal
+shippingAddress	Teslimat adresi
+orderNumber	Sipariş numarası
+id	Paket numarası
+customerEmail	Alıcı mail adresi
+customerfullName	Alıcı ad soyad ( invoiceType:2 ise Firma Ünvanı bu alandan dönecektir )
+customerId	Alıcı ID bilgisi
+taxId	Vergi no
+taxOffice	Vergi dairesi
+tcIdentityNumber	TC kimlik numarası
+cargoSenderNumber	Kargo takip numarası
+cargoTrackingNumber	Kargo barkod numarası / Kargo kampanya kodu
+cargoTrackingLink	Kargo takip linki
+shipmentCompanyId	Kargo firma id ( GetShipmentCompanies metodu ile listelenebilir )
+cargoProviderName	Kargo firma ünvanı ( GetShipmentCompanies metodu ile listelenebilir )
+shipmentMethod	Kargo yöntemi, 1: Kargo 2: Diğer ( dijital, hediye, online teslimat )
+installmentChargeWithVATprice	KDV dahil vade farkı
+lines	Sipariş ürün satırları ( Sipariş ürün bilgilerinin tamamını görüntüleyebilirsiniz )
+ quantity	Sipariş ürün adedi
+ productId	n11 ürün kodu
+ productName	Ürün adı
+ stockCode	Satıcı ürün kodu
+ variantAttributes	Ürün varyant özellikleri
+ customTextOptionValues	Müşteriye özel ürün seçeneği
+ price	Sipariş ürün birim fiyatı ( indirimler hariç )
+ dueAmount	Tahsil edilecek tutar
+ installmentChargeWithVAT	KDV dahil vade farkı ( ürün bazlı )
+ sellerCouponDiscount	Mağaza kupon indirimi
+ sellerDiscount	Mağaza indirimi
+ sellerCampaignCommissionDiscount	Kampanyalı komisyon indirim tutarı
+ sellerInvoiceAmount	Mağaza fatura tutarı
+ totalSellerDiscountPrice	Mağaza indirim toplamı
+ mallDiscount	Ürün ile ilgili n11 indirimi
+ totalMallDiscountPrice	n11 indirimleri toplamı
+ orderLineId	Sipariş ürün ID
+ orderItemLineItemStatusName	Sipariş ürün statüsü
+ vatRate	Sipariş ürün KDV oranı
+ commissionRate	Sipariş ürün komisyon oranı
+ sellerCampaignCommissionRate	Kampanyalı komisyon indirim oranı
+ taxDeductionRate	Sipariş ürün vergi kesinti oranı
+ totalLaborCostExcludingVAT	Sipariş ürün işçilik ücreti
+ netMarketingFeeRate	Pazarlama hizmet bedeli oranı
+ netMarketplaceFeeRate	Pazaryeri hizmet bedeli oranı
+ barcode	Ürün barkodu
+ deliveryFeeType	Kargo Ödeme Tipi, 1: Şartlı Kargo ( n11 Öder ) 3: Mağaza Öder 5: Şartlı Kargo ( Mağaza Öder )
+ sellerDiscountedPrice	Mağaza indirimli fiyat
+ sender	Gönderici tipi, SELLER: Satıcı gönderir N11: n11 depo gönderir
+productOrigin	Sipariş ürün menşei bilgisi
+lastModifiedDate	Sipariş son hareket tarihi
+agreedDeliveryDate	Maksimum kargolama tarihi
+totalAmount	Toplam tutar
+totalDiscountAmount	Toplam indirim tutarı
+packageHistories	Paket geçmişi ( Paketin geçmiş statülerini tarih bazlı görüntüleyebilirsiniz )
+shipmentPackageStatus	Sipariş statüsü
+sellerId	Satıcı ID bilgisi
+micro	true : e-İhracat siparişi, null : Yurt içi siparişi
+hsCode	Ürünün uluslararası gümrük sınıflandırma kodu
+invoiceLink	Sipariş Fatura Linki ( Yalnızca e-İhracat siparişlerinde kullanılmaktadır )
+invoiceDate	Sipariş Fatura Tarihi ( Yalnızca e-İhracat siparişlerinde kullanılmaktadır )
+etgbNo	Elektronik Ticaret Gümrük Beyanname Numarası
+etgbDate	Elektronik Ticaret Gümrük Beyanname Tarihi
+Sipariş listeleme
+Örnek Request:
+GET : https://api.n11.com/rest/delivery/v1/shipmentPackages?orderNumber={orderNumber}&packageIds={id}&startDate={startDate}&endDate={endDate}&status=Created&orderbyField=true&orderByDirection=ASC&page=0&size=100
+Yukarıdaki isteği orderNumber ve packageIds parametrelerini kaldırarak GET metodunda çağırdığınızda, startDate ve endDate parametrelerinde girilen tarih aralığındaki paket güncelleme tarihine göre Created statülü 1. sayfadaki hareket tarihi eskiden yeniye 100 adet sipariş listelenecektir.
+
+orderByField parametresi kaldırıldığında ya da false olduğunda girilen tarih aralığı sipariş oluşturma tarihi olarak baz alınacaktır.
+
+orderNumber (Sipariş Numarası) ve packageIds (Paket Numarası) parametrelerini birlikte ya da ayrı ayrı kullanarak sipariş çağırabilirsiniz.
+
+
+Dökümandaki request parametrelerine göre özelleştirmeler yapabilirsiniz.
+
+Örnek Response
+
+{
+    "pageCount": 1,
+    "totalPages": 1,
+    "page": 0,
+    "size": 100,
+    "content": [
+        {
+            "billingAddress": {
+                "address": "Reşitpaşa Mah İstanbul Teknik Üniversitesi Teknokent Arı 3 4/a-3 D:8-9, 34485 Sarıyer/İstanbul",
+                "city": "İstanbul",
+                "district": "Sarıyer",
+                "neighborhood": "Reşitpaşa",
+                "fullName": "n11 müşteri",
+                "gsm": "5xxxxxxxxx",
+                "tcId": "11111111111",
+                "postalCode": "34000",
+                "taxId": null,
+                "taxHouse": null,
+                "invoiceType": 1,
+                "countryCode": "TR"
+            },
+            "shippingAddress": {
+                "address": "Reşitpaşa Mah İstanbul Teknik Üniversitesi Teknokent Arı 3 4/a-3 D:8-9, 34485 Sarıyer/İstanbul",
+                "city": "İstanbul",
+                "district": "Sarıyer",
+                "neighborhood": "Reşitpaşa",
+                "fullName": "n11 müşteri",
+                "gsm": "5xxxxxxxxx ",
+                "tcId": "11111111111",
+                "postalCode": "34000"
+            },
+            "orderNumber": "203872347637",
+            "id": "112999455244259",
+            "customerEmail": "n11@n11.com",
+            "customerfullName": "n11 müşteri",
+            "customerId": 12345678,
+            "taxId": null,
+            "taxOffice": null,
+            "tcIdentityNumber": "11111111111",
+            "cargoSenderNumber": null,
+            "cargoTrackingNumber": "112999455244259",
+            "cargoTrackingLink": "",
+            "shipmentCompanyId": 342,
+            "cargoProviderName": "MNG Kargo",
+            "shipmentMethod": 1,
+            "installmentChargeWithVATprice": 0.00,
+            "lines": [
+                {
+                    "quantity": 2,
+                    "productId": 123456789,
+                    "productName": "Erkek Spor Ayakkabı Bordo 45",
+                    "stockCode": "20242024",
+                    "variantAttributes": [
+                        {
+                            "name": "Numara",
+                            "value": "45"
+                        },
+                        {
+                            "name": "Renk",
+                            "value": "Bordo"
+                        }
+                    ],
+                    "customTextOptionValues": [],
+                    "price": 292.8,
+                    "dueAmount": 536.20,
+                    "installmentChargeWithVAT": 0,
+                    "sellerCouponDiscount": 0,
+                    "sellerCampaignCommissionDiscount": 0,
+                    "sellerDiscount": 2.9,
+                    "mallDiscount": 43.60,
+                    "sellerInvoiceAmount": 579.8,
+                    "totalMallDiscountPrice": 43.60,
+                    "orderLineId": 415490391,
+                    "orderItemLineItemStatusName": "Picking",
+                    "totalSellerDiscountPrice": 5.8,
+                    "vatRate": 10,
+                    "commissionRate": 9,
+                    "sellerCampaignCommissionRate": 0,
+                    "taxDeductionRate": 1,
+                    "totalLaborCostExcludingVAT": 0,
+                    "netMarketingFeeRate": 1.2,
+                    "netMarketplaceFeeRate": 0.8,
+                    "barcode": "8684811136999",
+                    "deliveryFeeType": 3,
+                    "sellerDiscountedPrice": 289.90,
+                    "sender": "SELLER",
+                    "productOrigin": "TR"
+                },
+                {
+                    "quantity": 3,
+                    "productId": 123456799,
+                    "productName": " Erkek Klasik Ayakkabı Kahverengi 42",
+                    "stockCode": "202420241",
+                    "variantAttributes": [
+                        {
+                            "name": "Numara",
+                            "value": "42"
+                        },
+                        {
+                            "name": "Renk",
+                            "value": "Kahverengi"
+                        }
+                    ],
+                    "customTextOptionValues": [],
+                    "price": 250,
+                    "dueAmount": 693.60,
+                    "installmentChargeWithVAT": 0,
+                    "sellerCouponDiscount": 0,
+                    "sellerCampaignCommissionDiscount": 0,
+                    "sellerDiscount": 0,
+                    "mallDiscount": 28.20,
+                    "sellerInvoiceAmount": 750,
+                    "totalMallDiscountPrice": 56.40,
+                    "orderLineId": 415490390,
+                    "orderItemLineItemStatusName": "Picking",
+                    "totalSellerDiscountPrice": 0,
+                    "vatRate": 10,
+                    "commissionRate": 9,
+                    "sellerCampaignCommissionRate": 0,
+                    "taxDeductionRate": 1,
+                    "totalLaborCostExcludingVAT": 0,
+                    "netMarketingFeeRate": 1.2,
+                    "netMarketplaceFeeRate": 0.8,
+                    "barcode": null,
+                    "deliveryFeeType": 3,
+                    "sellerDiscountedPrice": 0,
+                    "sender": "SELLER",
+                    "productOrigin": "TR"
+                }
+            ],
+            "lastModifiedDate": 1724323386203,
+            "agreedDeliveryDate": 1725310828346,
+            "totalAmount": 1479.79,
+            "totalDiscountAmount": 62.3,
+            "packageHistories": [
+                {
+                    "createdDate": 1724274054460,
+                    "status": "Created"
+                },
+                {
+                    "createdDate": 1724274255751,
+                    "status": "Picking"
+                },
+                {
+                    "createdDate": 1724274492082,
+                    "status": " Shipped"
+                },
+                {
+                    "createdDate": 1724396400000,
+                    "status": " Delivered"
+                }
+            ],
+            "shipmentPackageStatus": "Delivered",
+            "sellerId": 9876543,
+            "micro": null,
+            "hsCode": "null",
+            "invoiceLink": "https://extfatura.faturaentegratoru.com/324523-34523-52345-3453245.pdf",
+            "invoiceDate": 1780903800000,
+            "etgbNo": "null",
+            "etgbDate": null
+        }
+    ]
+}
+
+Ürün Yükleme (CreateProduct)
+POST https://api.n11.com/ms/product/tasks/product-create
+
+Bu servis kullanılarak ürünlerini yükleyebilirsiniz.
+
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+Tek seferde maximum 1000 sku gönderebilirsiniz.
+İsteğinizi json formatında body de raw olarak ve aşağıdaki örnek desende iletiniz.
+HTTP isteğinizi 'POST' methoduyla ilgili endpoint'e gönderin.
+Servise yapılan her başarılı istek için response’ta ID (taskId) değeri dönmektedir. TaskDetail servisi ile yapılan işlemin kontrolü sağlanabilir.
+Dikkat Edilmesi Gerekenler;
+Ürün yüklemeye başlanmadan mapping alanında zorunlu özellikler doldurulmalı ve özelliklerin gönderimi yapılırken customValue alanı kontrol edilmelidir.
+GetCategoryAttributesList servisinden mandatory>true dönen ürün özellik değeri zorunludur.
+GetCategoryAttributesList servisinden customValue>false dönen ürün özelliği için yine aynı servisten dönen valueId değeri ile yazılmalıdır. Bu değerler sadece n11 değerleri kullanılır anlamına gelir.  customValue>true döner ise ister customValue alanına ister n11 değerlerini gönderebilir veya free değer iletebilirsiniz.
+GetCategoryAttributesList servisinden Variant>true döner ise ürünlere aynı productMainId eklenirse aynı sayfada ürün seçeneği şeklinde gözükür.
+Ürün görsel boyutu maksimum 10 MB ( 10.240 KB ) olmalıdır.
+Buybox ürün yükleme için CreateProduct servisinde gönderilen barcode alanı N11 kataloğundaki bir barkod ile eşleşir ise attribute özelliklerine bakılmaksızın ürün satıcı onayı bekliyor statüsünde açılacaktır.
+Ürün yükleme adımında ürün bazlı shipmentTemplate (kargo şablon adı ) gönderilmelidir.
+ 
+
+Parametre	Parametre Değer	Açıklama	Tip
+integrator	Evet	API Kullanıcı/Entegratör Firma ismini yazınız.Tüm gönderimlerinizde aynı ismi iletiniz.	string
+title	Evet	Ürün ismi, Marka-cinsiyet renk veye ürün bilgisini eklerek yazabilirsiniz.	string
+description	Evet	Ürüne ait açıklamaları ekleyiniz.	HTML-string
+categoryId	Evet	GetCategories servisinden aldığınız kategorinin en alt kırılım id değerini yazınız	long
+currencyType	Evet	Fiyatlandırmanızı TL, USD, EUR para birimlerini kullanabilirsiniz.USD ve EUR para birimi Merkez Bankası kur oranına göre güncellenir.	string
+productMainId	Evet	Ürüne ait tüm modelleri için aynı id yazınız.Varyantlı ürün açmak için Renk ve Beden tüm değeri için aynı değer eklenmelidir. Bu renkleri aynı sayfada toplarken bedenleri varyantlı açılmasını sağlar.	string
+preparingDay	Evet	Ürünün kargoya verilmesi için gereken süre anlamına gelmektedir.	integer
+shipmentTemplate	Evet	Hesabım>Teslimat Bilgilerimden oluşturduğunuz kargo şablon ismini yazınız.	string
+maxPurchaseQuantity	Hayır	Maksimum tekil alıcı başına eklenen satın alım adetidir.	integer
+stockCode	Evet	Ürüne ait belirlediğiniz uniq değerlerdir.Stok-fiyat güncellemeleriniz stokcode'a göre yapmanız gerekmektedir. Maksimum değeri 255	string
+catalogId	Hayır	n11'in katalogundaki id değeridir.	long
+barcode	Hayır	Gönderim yapılan değeri hata vermeden sadece ulusal barkodları kaydedilir.n11 katalogundaki barkod eşleştirebilmesi için yazılır.	string
+quantity	Evet	Stok miktarı.Maksimum değer 999.999	integer
+images/url/order	Evet	Ürün görsellerine ait URL adresi listesidir.Parametresi ile Görsel url adresleri SSL sertifikalı "https" formatında adresler olmalıdır. Order parametresi ile görsel sırasını yazınız	string
+attributes	Evet	Ürünün kategori özellik bilgilerini yazınız. Kategori özellik servisindeki Mandatory>true olan değerini yazmak zorunludur.	string
+attributes.id	Evet	Kategori özellik servisindeki özellik id değerini ekleyiniz.	long
+valueId	Evet	Kategori özellik servisindeki CustomValue>false ise valueId yazılmalıdır.	long
+customValue	Evet	Kategori özellik servisindeki CustomValue>true ise free değer yazabilirsiniz.	string
+salePrice	Evet	Ürün satış fiyatı	amount
+listPrice	Evet	Ürün liste fiyatı(Satış fiyatı düşük olunca üstü çizilen fiyat) PSF	amount
+vatRate	Evet	Ürün KDV oranı 0,1,10,20 değerlerini alabilir	integer
+Parametre (Cevap)	Açıklama	Tip
+id	Taskdetail'de bu idye göre sorulanmalıdır.	long
+type	Güncelleme (SKU_UPDATE) veya Yükleme(PRODUCT_CREATE) tasklı olduğu anlaşılır	string
+status	IN_QUEUE (Task İşleniyor, Taskdetail'den sorgulayınız.) ve REJECT (Task İşlenmemiştir . Reasons alanını kontrol ediniz.)	string
+reasons	Status bilgisine göre nedenler yazmaktadır.	list of string
+Tekil Ürün Yükleme (Varyantsız)
+Örnek Request:
+
+{
+    "payload": {
+        "integrator": "Entegratör isminizi yazınız",
+        "skus": [
+            {
+                "title": "Realme C55 8 GB 256 GB (Realme Türkiye Garantili) md0123278",
+                "description": "BB test test",
+                "categoryId": 1000476,
+                "currencyType": "TL",
+                "productMainId": "test1",
+                "preparingDay": 3,
+                "shipmentTemplate": "1",
+                "maxPurchaseQuantity": 5,
+                "stockCode": "md01g4141",
+                "catalogId": null,
+                "barcode": 8806094924862,
+                "quantity": 10,
+                "images": [
+                    {
+                        "url": "https://n11scdn.akamaized.net/a1/602_857/15/94/31/26/IMG-4582034240738960980.jpg",
+                        "order": 1
+                    },
+                    {
+                        "url": "https://images.secretlab.co/theme/common/collab_pokemon_catalog_charizard-min.png",
+                        "order": 0
+                    }
+                ],
+                "attributes": [
+                    {
+                        "id": 1,
+                        "valueId": null,
+                        "customValue": "Realme"
+                    },
+                    {
+                        "id": 911,
+                        "valueId": 444058,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1302,
+                        "valueId": 587473,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 429,
+                        "valueId": null,
+                        "customValue": "Beyaz"
+                    }
+                ],
+                "salePrice": 2000,
+                "listPrice": 2200,
+                "vatRate": 10
+            }
+        ]
+    }
+}
+Örnek Response:
+
+{
+   "id": 1092,
+   "type": "PRODUCT_CREATE",
+   "status": "IN_QUEUE",
+   "reasons": [
+       "1 sku işlenmeye alındı."
+   ]
+}
+Create Product Varyantlı ve Aynı Modele Ait Ürün Yükleme
+GetCategoryAttributesList Servisinden variant true değerli ürünlerde aynı productMainId değeri yüklediğinizde ürün varyantlı açılacaktır
+GetCategoryAttributesList Servisinden slicer true değerli için productMainId değeri yüklediğinizde ürün varyantlı açılacaktır
+Örnek Request
+
+{
+    "payload": {
+        "integrator": "Entegratör İsmini yazınız ",
+        "skus": [
+            {
+                "title": "Bisiklet Yaka Çicek Desenli Elbise Mavi A11-2",
+                "description": "B5555544",
+                "categoryId": 1209218,
+                "currencyType": "TL",
+                "productMainId": "1122",
+                "preparingDay": 3,
+                "shipmentTemplate": "1",
+                "maxPurchaseQuantity": 5,
+                "stockCode": "22211112S",
+                "catalogId": null,
+                "barcode": null,
+                "quantity": 10,
+                "images": [
+                    {
+                        "url": "https://n11scdn.akamaized.net/a1/602_857/15/94/31/26/IMG-4582034240738960980.jpg",
+                        "order": 0
+                    },
+                    {
+                        "url": "https://images.secretlab.co/theme/common/collab_pokemon_catalog_charizard-min.png",
+                        "order": 1
+                    }
+                ],
+                "attributes": [
+                    {
+                        "id": 1,
+                        "valueId": null,
+                        "customValue": "Mağaza7"
+                    },
+                    {
+                        "id": 429,
+                        "valueId": null,
+                        "customValue": "Mavi"
+                    },
+                    {
+                        "id": 220,
+                        "valueId": 6397019,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1493,
+                        "valueId": 6179186,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1272,
+                        "valueId": 6179186,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1236,
+                        "valueId": 9619686,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 6791,
+                        "valueId": 6753182,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 394,
+                        "valueId": 6753182,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 5368,
+                        "valueId": 4094199,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 22,
+                        "valueId": 4093865,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1494,
+                        "valueId": 4093868,
+                        "customValue": "null"
+                    }
+                ],
+                "salePrice": 2000,
+                "listPrice": 2200,
+                "vatRate": 10
+            },
+            {
+                "title": "Bisiklet Yaka Çicek Desenli Elbise Mavi A11-2",
+                "description": "B5555544",
+                "categoryId": 1209218,
+                "currencyType": "TL",
+                "productMainId": "1122",
+                "preparingDay": 3,
+                "shipmentTemplate": "1",
+                "maxPurchaseQuantity": 5,
+                "stockCode": "22211112M",
+                "catalogId": null,
+                "barcode": null,
+                "quantity": 10,
+                "images": [
+                    {
+                        "url": "https://n11scdn.akamaized.net/a1/602_857/15/94/31/26/IMG-4582034240738960980.jpg",
+                        "order": 0
+                    },
+                    {
+                        "url": "https://images.secretlab.co/theme/common/collab_pokemon_catalog_charizard-min.png",
+                        "order": 1
+                    }
+                ],
+                "attributes": [
+                    {
+                        "id": 1,
+                        "valueId": null,
+                        "customValue": "Mağaza7"
+                    },
+                    {
+                        "id": 429,
+                        "valueId": null,
+                        "customValue": "Mavi"
+                    },
+                    {
+                        "id": 220,
+                        "valueId": 6397019,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1493,
+                        "valueId": 6179186,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1272,
+                        "valueId": 6179186,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1236,
+                        "valueId": 9619686,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 6791,
+                        "valueId": 6753182,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 394,
+                        "valueId": 6753182,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 5368,
+                        "valueId": 4094199,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 22,
+                        "valueId": 4093865,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1494,
+                        "valueId": 4093852,
+                        "customValue": "null"
+                    }
+                ],
+                "salePrice": 2000,
+                "listPrice": 2200,
+                "vatRate": 10
+            },
+            {
+                "title": "Bisiklet Yaka Çicek Desenli Elbise Yeşil A11-2",
+                "description": "B5555544",
+                "categoryId": 1209218,
+                "currencyType": "TL",
+                "productMainId": "1122",
+                "preparingDay": 3,
+                "shipmentTemplate": "1",
+                "maxPurchaseQuantity": 5,
+                "stockCode": "222111121S",
+                "catalogId": null,
+                "barcode": "null",
+                "quantity": 10,
+                "images": [
+                    {
+                        "url": "https://n11scdn.akamaized.net/a1/602_857/15/94/31/26/IMG-4582034240738960980.jpg",
+                        "order": 0
+                    },
+                    {
+                        "url": "https://images.secretlab.co/theme/common/collab_pokemon_catalog_charizard-min.png",
+                        "order": 1
+                    }
+                ],
+                "attributes": [
+                    {
+                        "id": 1,
+                        "valueId": null,
+                        "customValue": "Mağaza7"
+                    },
+                    {
+                        "id": 429,
+                        "valueId": null,
+                        "customValue": "Yeşil"
+                    },
+                    {
+                        "id": 220,
+                        "valueId": 6397019,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1493,
+                        "valueId": 6179186,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1272,
+                        "valueId": 6179186,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1236,
+                        "valueId": 9619686,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 6791,
+                        "valueId": 6753182,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 394,
+                        "valueId": 6753182,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 5368,
+                        "valueId": 4094199,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 22,
+                        "valueId": 4093865,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1494,
+                        "valueId": 4093868,
+                        "customValue": "null"
+                    }
+                ],
+                "salePrice": 2000,
+                "listPrice": 2200,
+                "vatRate": 10
+            },
+            {
+                "title": "Bisiklet Yaka Çicek Desenli Elbise Mavi A11-2",
+                "description": "B5555544",
+                "categoryId": 1209218,
+                "currencyType": "TL",
+                "productMainId": "1122",
+                "preparingDay": 3,
+                "shipmentTemplate": "1",
+                "maxPurchaseQuantity": 5,
+                "stockCode": "222111121M",
+                "catalogId": null,
+                "barcode": null,
+                "quantity": 10,
+                "images": [
+                    {
+                        "url": "https://n11scdn.akamaized.net/a1/602_857/15/94/31/26/IMG-4582034240738960980.jpg",
+                        "order": 0
+                    },
+                    {
+                        "url": "https://images.secretlab.co/theme/common/collab_pokemon_catalog_charizard-min.png",
+                        "order": 1
+                    }
+                ],
+                "attributes": [
+                    {
+                        "id": 1,
+                        "valueId": null,
+                        "customValue": "Mağaza7"
+                    },
+                    {
+                        "id": 429,
+                        "valueId": null,
+                        "customValue": "Yeşil"
+                    },
+                    {
+                        "id": 220,
+                        "valueId": 6397019,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1493,
+                        "valueId": 6179186,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1272,
+                        "valueId": 6179186,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1236,
+                        "valueId": 9619686,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 6791,
+                        "valueId": 6753182,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 394,
+                        "valueId": 6753182,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 5368,
+                        "valueId": 4094199,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 22,
+                        "valueId": 4093865,
+                        "customValue": "null"
+                    },
+                    {
+                        "id": 1494,
+                        "valueId": 4093852,
+                        "customValue": "null"
+                    }
+                ],
+                "salePrice": 2000,
+                "listPrice": 2200,
+                "vatRate": 10
+            }
+        ]
+    }
+}
+
+
+Ürün Fiyat-Stok Güncelleme & Task Detail Sorgulama
+ 
+Aşağıda fiyat&stok güncelleme, ürün temel bilgilerini güncelleme ve task detail sorgulama dökümanlarını görüntüleyebilirsiniz.
+
+Ürün Fiyat-Stok Güncelleme (UpdateProductPriceAndStock)
+POSThttps://api.n11.com/ms/product/tasks/price-stock-update
+Bu servis kullanılarak ürünlerin fiyat ve stok bilgisini güncelleyebilirsiniz.
+
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+Tek seferde maximum 1000 sku için güncelleme atabilirsiniz.
+İsteğinizi json formatında body de raw olarak iletmeniz gerekir.
+HTTP isteğinizi 'POST' methoduyla ilgili endpoint'e gönderin.
+JSON dosyanızı iletilen örnek desen formatında hazırlayın.
+Servise yapılan her başarılı istek için response’ta ID (taskId) değeri dönmektedir.  TaskDetail servisi ile  yapılan işlemin kontrolü sağlanabilir.
+Fiyat güncellemelerinde listPrice ve salePrice parametreleri birlikte gönderilmelidir.
+listPrice ve salePrice değerlerinde küsurat bilgisi nokta ile ayrılmalıdır. Virgül kullanımı hata alınmasına sebebiyet verecektir.
+listPrice ve salePrice değerlerinde küsurat noktadan sonra 2 hane iletilmelidir. Aksi takdirde isteğiniz REJECT alacaktır. 
+Sadece fiyat veya sadece stok güncellemesi yapılacak ise istekte güncellemek istemediğiniz alanları göndermeyebilirsiniz. İstekte mevcut olmayan alanlar için herhangi bir update yapılmayacaktır. Burada dikkat edilmesi gereken nokta fiyat güncellemelerinde listPrice ve salePrice'ın birlikte gönderilmesi gerektiğidir.
+listPrice ve salePrice değerini aynı değer gönderebilirsiniz. listPrice, salePrice'dan yüksek olmalıdır. Aksi takdirde isteğiniz REJECT alacaktır. 
+ 
+
+Response Status	Açıklama
+IN_QUEUE	İlettiğiniz task kuyrukta bekmektedir.Task Detail Servisinden taskid ile sorgulayabilirsiniz.
+REJECT	Veri seti yüklenmediğinde doğrudan reason parametresi ile açıklamasını iletilmektedir.
+Örnek Request:
+
+{
+  "payload": {
+    "integrator": "Entegratör İsmini yazabilirsiniz",
+    "skus": [
+      {
+        "stockCode": "test_variant_ea1_1",
+        "listPrice": 2000,
+        "salePrice": 1600,
+        "quantity": 2,
+        "currencyType": "TL"
+      },
+      {
+        "stockCode": "test_variant_ea1_2",
+        "listPrice": 2200,
+        "salePrice": 1800,
+        "quantity": 1,
+        "currencyType": "TL"
+      }
+
+    ]
+  }
+}
+
+Örnek Response:
+
+{
+   "id": 1092,
+   "type": "SKU_UPDATE",
+   "status": "IN_QUEUE",
+   "reasons": [
+       "1 sku işlenmeye alındı."
+   ]
+
+}
+Request Parametre	Zorunluluk	Açıklama	Veri Tipi
+integrator	Evet	Entegratör ve API kullanıcısının verilebilecek özel ismi. Tüm gönderimlerinizde aynı değer kullanmanızı rica ederiz.	string
+stockCode	Evet	Tedarikçinin ürüne belirlediği uniq kod. Ürünler (SKU) ile ilgili güncellemeleri bu değeri zorunlu olarak göndermelisiniz.	string
+listPrice	Hayır*	Ürün liste fiyatı (Satış fiyatı düşük olunca üstü çizilen fiyat) PSF.	number
+salePrice	Hayır*	Ürün satış fiyatı TSF.	number
+quantity	Hayır	Stok miktarı.	integer
+currencyType	Hayır	Ürün liste fiyatı para birimi. Alınan değerler TL, USD ve EUR olabilir.	text
+Task Detail Sorgulama (TaskDetails)
+POSThttps://api.n11.com/ms/product/task-details/page-query
+UpdateProduct ve UpdateProductPriceAndStock servislerine yapılan her başarılı istek için response’ta id(taskId)  değeri dönmektedir. Bu ID değerini requestte taskid'ye yazınız.Servis ile ilgili işlem için itemCode bazlı sonuçları alınmaktadır.
+
+Authorization no auth seçiniz.
+Headers alanına appkey ve appsecret bilgisini eklemeniz gerekir.
+İsteğinizi json formatında body de raw olarak iletmeniz gerekir.
+Response’da yer alan itemCode değeri stock kodunu ifade eder. Status, Fail ve SUCCESS değerlerini alımaktadır. Sku alanında güncelleme alanın sonucunu görmektesiniz.
+Task işlenmesi bitti ise  "status": "PROCESSED" değerinden alabilirsiniz.Buradaki değerler statu değerleri "PROCESSED" = İşlem tamamlandı  ve “IN_QUEUE” = İşleniyor  “REJECT” =  Task işlenmemiştir.
+
+Örnek Request;
+
+{
+    "taskId": 362,
+    "pageable": {
+        "page": 0,
+        "size": 1000
+    }
+}
+
+Örnek Response;
+
+{
+    "taskId": 1095,
+    "skus": {
+        "content": [
+            {
+                "id": 1585,
+                "taskId": 1095,
+                "ownerId": 2770263,
+                "itemCode": "1234567m",
+                "status": "SUCCESS",
+                "sku": {
+                    "salePrice": 1100.00,
+                    "listPrice": 1200.00,
+                    "currencyType": "TL",
+                    "reasons": [
+                        "Başarıyla tamamlandı."
+                    ],
+                    "stock": 9
+                },
+                "reasons": [
+                    "Başarıyla tamamlandı."
+                ]
+            }
+        ]
+,
+        "pageable": {
+            "sort": {
+                "empty": true,
+                "sorted": false,
+                "unsorted": true
+            },
+            "offset": 0,
+            "pageNumber": 0,
+            "pageSize": 100000,
+            "paged": true,
+            "unpaged": false
+        },
+        "last": true,
+        "totalElements": 1,
+        "totalPages": 1,
+        "sort": {
+            "empty": true,
+            "sorted": false,
+            "unsorted": true
+        },
+        "first": true,
+        "number": 0,
+        "numberOfElements": 1,
+        "size": 100000,
+        "empty": false
+    },
+    "createdDate": "12-08-2024 06:12:05",
+    "modifiedDate": "12-08-2024 06:12:11",
+    "status": "PROCESSED"
+}
+
+Parçalı İptal Talebi (ClaimCancelPartial)
+WSDL adresi: https://api.n11.com/ws/ClaimCancelService.wsdl
+Bu servis üzerinden Onaylandı ve Geciken Kargolama! (Onaylanmış) statüsündeki siparişlerde kalem ve miktar bazlı iptal işlemi gerçekleştirebilirsiniz.
+
+Yeni Sipariş statüsündeki siparişler bu servis üzerinden iptal edilememekte olup, satıcı paneli üzerinden Reddet butonu ile satıcı tarafından iptal edilebilmektedir.
+
+ClaimCancelPartialRequest
+Auth	Bkz: Authentication
+orderItemId	İptal edilecek sipariş kalemi idsi.
+cancelQuantity	İptal edilecek sipariş kalemi adedi.
+cancelReasonTypeId	İptal sebebi idsi. ClaimCancelPartialReasonType servisinden alınacaktır.
+cancelReasonDescription	İptal sebebi açıklaması..
+ClaimCancelPartialResponse
+result
+ClaimCancelPartial Örnek Çağrı
+Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch: ClaimCancelPartialRequest>
+            <auth>
+                <appKey>************************</appKey>
+                <appSecret>********</appSecret>
+            </auth>
+            <orderItemId>1234567</orderItemId>
+            <cancelQuantity>1</cancelQuantity>
+            <cancelReasonTypeId>81</cancelReasonTypeId>
+            <cancelReasonDescription>Stok Yok</cancelReasonDescription>
+        </sch: ClaimCancelPartialRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+
+Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3: ClaimCancelPartialResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+        </ns3: ClaimCancelPartialResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+ClaimCancelPartial Örnek Çağrı (JAVA)
+
+public static void main(String[] args) {
+String strAppKey = "***";
+String strAppSecret = "***";
+Long orderItemId = 1234567L;
+Integer cancelQuantity = 1;
+Long cancelReasonTypeId = 81L;
+String cancelReasonDescription = ”Stok Yok”;
+
+Authentication authentication = new Authentication();
+authentication.setAppKey(strAppKey);
+authentication.setAppSecret(strAppSecret);
+
+ClaimCancelPartialRequest request = new ClaimCancelPartialRequest();
+request.setAuthentication(authentication);
+request.setOrderItemId(orderItemId);
+request.setCancelQuantity(cancelQuantity);
+request.setCancelReasonTypeId(cancelReasonTypeId);
+request.setCancelReasonDescription(cancelReasonDescription);
+
+ClaimCancelServicePort port = new ClaimCancelServicePortService()
+.getClaimCancelServicePortSoap11();
+ClaimCancelPartialResponse response = port.claimCancelPartial(request);}
+    
+	
+	İptal Servisi (ClaimCancelApprove)
+ClaimCancelApproveRequest
+Auth
+claimCancelId	Onaylanacak iptal talebinin idsi.
+ClaimCancelApproveResponse
+result
+ClaimCancelApprove Örnek Çağrı
+Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch: ClaimCancelApproveRequest>
+            <auth>
+                <appKey>************************</appKey>
+                <appSecret>********</appSecret>
+            </auth>
+            <claimCancelId>1234567</claimCancelId>
+        </sch: ClaimCancelApproveRequest>
+    </soapenv:Body>
+Request
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3: ClaimCancelApproveResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+        </ns3: ClaimCancelApproveResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+t);}
+İptal Talebi Reddetme (ClaimCancelDeny)
+   
+İptal talebini reddetme servisi.
+
+   
+ClaimCancelDenyRequest
+                                                                                                                                                                       
+Auth	Bkz: Authentication
+claimCancelId	Reddedilecek iptal talebinin idsi.
+denyReasonId	Red sebebinin idsi. ClaimCancelDenyReasonType servisinden alınacaktır.
+denyReasonNote	Red açıklaması.
+   
+ClaimCancelDenyResponse
+               
+result
+   
+ClaimCancelDeny Örnek Çağrı
+   
+Request
+   
+               
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch: ClaimCancelDenyRequest>
+            <auth>
+                <appKey>************************</appKey>
+                <appSecret>********</appSecret>
+            </auth>
+            <claimCancelId>1234567</claimCancelId>
+            <denyReasonId>2</denyReasonId>
+            <denyReasonNote>reddettim</denyReasonNote>
+        </sch: ClaimCancelDenyRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+
+Ürün Soru-Cevap Servisi
+Ürün servisi için WSDL adresi: https://api.n11.com/ws/productService.wsdl
+ 
+Ürün Sorularını Listeleme (GetProductQuestionList)
+Müşterileriniz tarafından mağazanıza sorulan soruları listeler.
+
+Dikkat Edilmesi Gerekenler;
+
+Ürün soruları dakikada 1 kez listelenebilmektedir, tekrar istek atıldığında uyarı mesajı verilecektir.
+startDate, endDate, currentPage, pageSize alanları zorunludur.
+status parametresi boş gönderildiğinde default olarak OPEN status baz alınarak açık sorular listelenecektir.
+Parametre	Parametre Değer	Açıklama
+Auth.appKey	 	API Key
+Auth.appSecret	 	API Secret
+productId	 	n11 Ürün Kodu
+buyerEmail	 	Müşteri e-posta adresi
+subject	 	Sorunun konusu
+status	OPEN / CLOSED	Gelen soruların durumları, default değer OPEN
+startDate	DD/MM/YYYY	Filtreleme başlangıç tarihi
+endDate	DD/MM/YYYY	Filtreleme bitiş tarihi
+currentPage	 	Gösterilen sayfa numarası (currentpage 0 ile başlar)
+pageSize	 	Sayfada yer alan madde sayısı
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da “failure” durum bilgilerini döner.
+productQuestion.answer	Kaydedilen cevap
+productQuestion.id	Gelen sorunun ID değeri
+productQuestion.productId	n11 Ürün Kodu
+productQuestion.productTitle	Ürün başlığı
+productQuestion.question	Soru
+productQuestion.questionSubject	Sorunun konusu
+currentPage	Gösterilen sayfa numarası (currentpage 0 ile başlar)
+pageSize	Sayfada yer alan madde sayısı
+totalCount	Toplam soru sayısı
+pageCount	Toplam sayfa sayısı
+Örnek Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:GetProductQuestionListRequest>
+            <auth>
+                <appKey>***</appKey>
+                <appSecret>***</appSecret>
+            </auth>
+            <productQuestionSearch>
+                <productId></productId>
+                <buyerEmail></buyerEmail>
+                <subject></subject>
+                <status>CLOSED</status>
+                <startDate>11/03/2026</startDate>
+                <endDate>12/03/2026</endDate>
+            </productQuestionSearch>
+            <pagingData>
+                <currentPage>0</currentPage>
+                <pageSize>10</pageSize>
+            </pagingData>
+        </sch:GetProductQuestionListRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+    <env:Header/>
+    <env:Body>
+        <ns3:GetProductQuestionListResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+            <productQuestions>
+                <productQuestion>
+                    <answer>Merhaba, ürün kargoya patpata sarılarak verilmektedir.</answer>
+                    <id>114646171</id>
+                    <productId>730196627</productId>
+                    <productTitle>Çiçek Desenli Fincan Takımı</productTitle>
+                    <question>Ürün kargoya nasıl verilmektedir?</question>
+                    <questionSubject>Kargo hakkında</questionSubject>
+                </productQuestion>
+            </productQuestions>
+            <pagingData>
+                <currentPage>0</currentPage>
+                <pageSize>10</pageSize>
+                <totalCount>1</totalCount>
+                <pageCount>1</pageCount>
+            </pagingData>
+        </ns3:GetProductQuestionListResponse>
+    </env:Body>
+</env:Envelope>
+
+Ürün Sorularını Detaylandırma (GetProductQuestionDetail)
+GetProductQuestionList ile listelenen soruların detayını bu servis aracılığıyla görüntüleyebilirsiniz.
+
+Dikkat Edilmesi Gerekenler;
+
+GetProductQuestionList servisinden dönen id değerini bu serviste productQuestionId parametresinde sorgulayarak içeriğe ulaşabilirsiniz.
+Parametre	Açıklama
+Auth.appKey	API Key
+Auth.appSecret	API Secret
+productQuestionId	Gelen sorunun ID değeri
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da “failure” durum bilgilerini döner.
+answer	Kaydedilen Cevap
+answeredDate	Cevaplanma Tarihi
+buyerExpose	Müşteri soru paylaşımı - Özel / Genel
+email	Müşteri e-posta Adresi
+fullName	Müşteri Adı
+productId	n11 Ürün Kodu
+productStatus	Ürün Durumu
+productTitle	Ürün Başlığı
+question	Soru
+questionDate	Soru Tarihi
+questionSubject	Soru Başlığı
+sellerExpose	Satıcı soru paylaşımı - Özel / Genel (Satıcı panelinden değiştirilebilir) 
+status	Sorunun Durumu
+Örnek Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:GetProductQuestionDetailRequest>
+            <auth>
+                <appKey>***</appKey>
+                <appSecret>***</appSecret>
+            </auth>
+            <productQuestionId>114646171</productQuestionId>
+        </sch:GetProductQuestionDetailRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3:GetProductQuestionDetailResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+            <productQuestion>
+                <answer>Merhaba, ürün kargoya patpata sarılarak verilmektedir.</answer>
+                <answeredDate>2026-03-11</answeredDate>
+                <buyerExpose>YES</buyerExpose>
+                <email>adsoyad@gmail.com</email>
+                <fullName>Ad Soyad</fullName>
+                <productId>730196627</productId>
+                <images/>
+                <productStatus>Active</productStatus>
+                <productTitle>Çiçek Desenli Fincan Takımı</productTitle>
+                <question>Ürün kargoya nasıl verilmektedir?</question>
+                <questionDate>2026-03-11</questionDate>
+                <questionSubject>Kargo hakkında</questionSubject>
+                <sellerExpose>YES</sellerExpose>
+                <status>CLOSED</status>
+            </productQuestion>
+        </ns3:GetProductQuestionDetailResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+Ürün Sorularını Cevaplama (SaveProductAnswerRequest)
+Müşterilerden gelen ürün sorularını cevaplamak için kullanılır.
+
+Dikkat Edilmesi Gerekenler;
+
+Soruları cevaplamak için productQuestionId ve answer parametrelerini doldurarak gönderim sağlamalısınız, GetProductQuestionList servisinden dönen id değeri bu serviste productQuestionId parametresinde kullanılmaktadır.
+answer alanında minimum 1, maksimum 2048 karakter gönderebilirsiniz.
+1 Soru 1 Kere cevaplanabilmekte olup, cevap gönderildikten sonra sorunun statüsü CLOSED olarak güncellenmektedir.
+Parametre	Açıklama
+Auth.appKey	API Key
+Auth.appSecret	API Secret
+productQuestionId	Gelen sorunun ID değeri
+answer	Sorunun Cevabı
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da “failure” durum bilgilerini döner.
+Örnek Request
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:SaveProductAnswerRequest>
+            <auth>
+                <appKey>***</appKey>
+                <appSecret>***</appSecret>
+            </auth>
+            <productQuestionId>114245586</productQuestionId>
+            <answer>Merhaba, ürünümüz su geçirmez kumaşa sahiptir...</answer>
+        </sch:SaveProductAnswerRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+Örnek Response
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3:SaveProductAnswerResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+        </ns3:SaveProductAnswerResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+Fatura Linki Gönderme (saveLinkSellerInvoice)
+Satıcı faturası servisleri için WSDL adresi: https://api.n11.com/ws/SellerInvoiceService.wsdl
+Çalıştığınız bir fatura servisinden elde ettiğiniz link şeklindeki faturalarınızı ilgili siparişe kaydedebilirsiniz.
+
+Fatura linkiniz ve sipariş numarası ile bu kayıt işlemini gerçekleştirebilirsiniz.
+Her 2 alana da giriş yapmak zorunludur.
+Aynı sipariş için sadece aktif olarak 1 adet fatura linki kaydedebilirsiniz.
+Tekrar yapacağınız yüklemelerde, önceki yüklemiş olduğunuz kayıt silinerek en sonuncusu aktif yapılır.
+Yapacağınız fatura linki kayıtlarında aşağıdaki kurallara tabii olacaksınız:
+“url” alanı için beklenen standartları sağlamalısınız.
+Linkteki dosya uzantısı sadece pdf, png veya jpeg olmalı.
+Http protokolünü güvenli şekilde içermeli: HTTPS
+Link uzunluğu 2048 karakteri geçemez.
+Genel url standartlarına uygun olmalıdır.
+“orderNumber” alanına, satıcısı olarak bulunduğunuz bir sipariş numarası girmelisiniz.
+invoiceDateTime ve invoiceNumber alanları e-İhracat siparişleri için zorunlu olup, yurt içi siparişlerde opsiyoneldir.
+invoiceNumber alanında değer doğrulama bulunmaktadır;
+İlk üç hane; alfanümerik olmalıdır (Harf veya rakam).
+Dört, beş, altı ve yedinci hane; bir yıla eşit ve 2020 - 2099 aralığında olmalıdır.
+Sekizinci haneden itibaren (Son dokuz hane) nümerik olmalı.
+ 
+
+Önemli Fatura linklerinde yaratılan özel karakterler XML parametrelerini bozmaktadır. Linklerde sıklıkla kullanılan & değerini "&amp;"  iletilmesi durumda sorun olmayacaktır.
+ 
+
+Parametre	Parametre Değer	Açıklama
+Auth.appKey	 	API Key
+Auth.appSecret	 	API Secret
+url	 	Fatura Linki
+orderNumber	 	Sipariş Numarası
+invoiceDateTime	Timestamp (milliseconds) ve GMT +3 olarak gönderilmelidir.	Fatura Tarihi
+invoiceNumber	([3 digit(alphanumeric)][13 digit(numeric)])	Fatura Numarası
+Parametre (Cevap)	Açıklama
+result.status	İşlem sonucu durum bilgisini gösterir. “success” ya da “failure” durum bilgilerini döner.
+url	Kaydedilen Fatura Linki
+orderNumber	Fatura Kaydedilen Sipariş Numarası
+invoiceDateTime	Fatura Tarihi
+invoiceNumber	Fatura Numarası
+Örnek Request (Yurtiçi)
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:SaveLinkSellerInvoiceRequest>
+            <auth>
+                <appKey>***</appKey>
+                <appSecret>***</appSecret>
+            </auth>
+            <url>https://extfatura.faturaentegratoru.com/324523-34523-52345-3453246.pdf</url>
+            <orderNumber>202665912318</orderNumber>
+        </sch:SaveLinkSellerInvoiceRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+
+Örnek Response (Yurtiçi)
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3:SaveLinkSellerInvoiceResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+            <url>https://extfatura.faturaentegratoru.com/324523-34523-52345-3453246.pdf</url>
+            <orderNumber>202665912318</orderNumber>
+        </ns3:SaveLinkSellerInvoiceResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+Örnek Request (e-İhracat)
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="http://www.n11.com/ws/schemas">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <sch:SaveLinkSellerInvoiceRequest>
+            <auth>
+                <appKey>***</appKey>
+                <appSecret>***</appSecret>
+            </auth>
+            <url>https://extfatura.faturaentegratoru.com/324523-34523-52345-3453245.pdf</url>
+            <orderNumber>202665912317</orderNumber>
+            <invoiceNumber>N112026000000001</invoiceNumber>
+            <invoiceDateTime>1780903800000</invoiceDateTime>
+        </sch:SaveLinkSellerInvoiceRequest>
+    </soapenv:Body>
+</soapenv:Envelope>
+
+Örnek Response (e-İhracat)
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3:SaveLinkSellerInvoiceResponse xmlns:ns3="http://www.n11.com/ws/schemas">
+            <result>
+                <status>success</status>
+            </result>
+            <url>https://extfatura.faturaentegratoru.com/324523-34523-52345-3453245.pdf</url>
+            <orderNumber>202665912317</orderNumber>
+            <invoiceDateTime>1780903800000</invoiceDateTime>
+            <invoiceNumber>N112026000000001</invoiceNumber>
+        </ns3:SaveLinkSellerInvoiceResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
