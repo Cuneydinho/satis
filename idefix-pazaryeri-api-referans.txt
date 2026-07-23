@@ -1,0 +1,2581 @@
+İdefix API Portal' e Hoşgeldiniz
+Nasıl Entegrasyon Yapılır?
+API portalı entegrasyon/API servisleri üzerinden çalışacak Merchant/Entegratörler için oluşturulan; ürün aktarımı, stok ve fiyat güncellemesi, sipariş işlemleri, fatura gönderimi ,iade işlemleri gibi bir çok işlemin yapılmasına olanak sağlayan servislerin dokümanıdır.
+
+Screenshot_2
+
+Servis Limitleri
+API servislerinde eşiğe ulaşıldığında request 429 Too Many Request statüsü ile sonuçlanır ve aşağıdaki response header'ları dikkate alarak istek sıklığınızı düzenlemelisiniz.
+
+➜ X-Api-Call-Limit → saniyedeki istek sayısını gösterir.
+➜ Retry-After: 2.0 → buradaki değer kadar saniye sonra tekrar deneyin.
+Ürün Entegrasyonu →
+
+Sipariş Entegrasyonu →
+Detaylı bilgi ve endpoint listesi için tıklayın.
+
+Canlı - Test Ortam Bilgileri
+
+Auth için kullanılan API KEY, API SECRET KEY ve Satıcı ID bilgilerinize Satıcı panelinde yer alan "Hesap Bilgilerim" altında "Entegrasyon Bilgileri" sayfasından "Yeni API Oluştur" butonuna tıklayarak ulaşabilirsiniz. Bu butona tıklandığında API KEY ve API SECRET KEY bilgileri satıcının üzerinde kayıtlı olan mail adresine gönderilecektir. Bu bilgiler prod ve stage ortamda değişmektedir.
+
+Idefix test ortamına erişim için IP yetkilendirmesi gerekmektedir. Prod ortamında herhangi bir IP yetkilendirmesine gerek yoktur. Hem test hem de prod ortamında herhangi bir erişim sorunuyla karşılaşırsanız size iletilen destek maili üzerinden iletişime geçebilirsiniz.
+
+TEST ORTAM BİLGİLERİ
+PIM PATTERN
+
+https://ide-pimapi.idefiks.net/api/connector/product-category
+OMS PATTERN
+
+https://ide-omsapi.idefiks.net/api/shipment/connect/{vendorID}/claim-list
+1. Adım: idefix test ortamına erişim için IP yetkilendirmesi gerekmektedir. Test ortamına erişebilmek için IP bilgileri idefix tarafına iletilerek yetki tanımı yapılmalıdır.
+
+2. Adım: Test ortamının kullanılabilir olması için IP tanımı ile birlikte, test hesaplarının idefix tarafından tanımlanıp sizlerle paylaşılması gerekmektedir.
+
+
+3. Adım: Test hesapları oluşturulduktan sonra, API bilgilerine satıcı panelinde yer alan “Hesap Bilgilerim” menüsü altındaki “Entegrasyon Bilgileri” sayfasından erişebilirsiniz.
+
+❗ NOT: Testlerin öncelikle stage ortamda tamamlanıp, ardından canlı (prod) ortamda yapılmasını rica ederiz.
+CANLI ORTAM BİLGİLERİ
+PIM PATTERN
+
+https://merchantapi.idefix.com/pim/product-category
+OMS PATTERN
+
+https://merchantapi.idefix.com/oms/{vendorId}list
+❗ Ortam Uyarısı: API KEY, API SECRET KEY ve Satıcı ID bilgileri prod ve stage ortamları için farklıdır.
+
+
+Sıkça Sorulan Sorular
+
+▶
+Stok/fiyat gönderdim ama idefix sistemine yansımadı, ne yapmam gerekiyor?
+Öncelikle stok-ve-fiyat-guncel-durum-sorgulama servisinden bir hata alınıp alınmadığı kontrol edilmelidir. Eğer bir hata yok ise stok/fiyat kontrolünün doğru ekrandan yapıldığına emin olunur. (Mcenter→Envanterim) ya da inventory-list servisinden kontroller yapılabilir.
+▶
+Ürün bilgilerine ait güncelleme işlemlerini nasıl yapabilirim ?
+API servisleri üzerinden ürüne ait yalnızca stok-fiyat güncellemeleri yapılabilmektedir. Ürüne ait diğer bilgiler API aracılığıyla güncellenmemektedir.
+▶
+İdefix sisteminde bulunan güncel stok/fiyat bilgilerime hangi servisten ulaşabilirim?
+inventory-list servisinden envantere eklenmiş ürünlerinizin güncel stok/fiyat bilgilerine erişebilirsiniz.
+▶
+Fatura kesilebilmesi için bireysel/kurumsal fatura bilgisi ve indirim tutar bilgilerine hangi servisten ulaşabilirim?
+Sevkiyatlar Listesi (list) servisinden bu bilgi dönmektedir. Kurumsal fatura için "isCommercial" değeri kontrol edilmelidir.
+
+Kurumsal: company, taxNumber, taxOffice bilgileri invoiceAddress alanından alınabilir.
+
+Bireysel: platformun uygulamış olduğu indirim ve kuponlar için response'ta ilgili parametreler 0 olarak döner.
+▶
+Ürünü servislerinizden oluşturduk fakat idefix sistemine yansımadı, ne yapmam gerekiyor?
+Ürün idefix sisteminde yer almıyor ise create servisini tetiklediğinizden emin olun. Ardından batch-result servisinden hata kontrol edilmelidir. Gerekli düzenlemeler sonrası tekrar gönderim yapılabilir.
+▶
+Satıcı entegrasyonlu kargo modelinde çalışıyorum. Kargomu nasıl teslim edildi olarak bildirebilirim?
+Teslim edildi bilgisi için manuel-deliver servisi kullanılır.
+▶
+Servislerinize bağlanmak için token nasıl alabilirim?
+authorization sayfasından token alma ile ilgili bilgiye erişebilirsiniz.
+▶
+Bir sipariş içerisindeki ürün sayısını alabileceğimiz bir parametreniz var mı?
+shipment-list servisinde her ürün max. 1 adet olarak döner. Quantity bilgisi yoktur. Ancak toplam ürün adetleri için https://merchantapi.idefix.com/oms/{vendorId}/list-v2 servisi kullanılabilir.
+▶
+Siparişime ait kargo profil bilgilerine nereden ulaşabilirim?
+shipment-list servisinden cargoProfileId alanına erişilir. Detay için vendor/profile/list servisi kullanılabilir.
+▶
+Güncel sipariş statüleri nelerdir?
+shipment-list servisinden güncel statülere erişebilirsiniz.
+▶
+Servislerinizdeki rate limitler nelerdir?
+Eşik aşıldığında 429 Too Many Request hatası alınır. Aşağıdaki response header'lar dikkate alınmalıdır:
+
+X-Api-Call-Limit: saniyedeki istek sayısını gösterir.
+Retry-After: 2.0 → bu kadar saniye sonra tekrar deneyin.
+▶
+Bir ürün oluşturma isteği içerisinde kaç ürün olabilir, bir batch içerisinden max. kaç item döner?
+Max. 200 item gönderilebilir. Bir batch içerisinde en fazla 200 item olur.
+▶
+Sipariş faturalarımı sisteme nasıl yükleyebilirim ?
+1) Entegrasyon ile iletilmek istendiği durumda Fatura Linki Gönderme (invoice-link) servisi üzerinden shipmentID bilgisi kullanılarak yükleme yapılabilmektedir.
+
+2) Manuel yükleme yapılmak istendiği durumda; MercentCenter -> Siparişlerim -> Fatura Yükle butonuyla işlem yapılabilmektedir.
+
+3) Shipment-list servisinde bulunan maskeli mail adresine pdf/link gönderilerek işlem sağlanabilmektedir.
+▶
+Ürün statülerine nasıl erişebilirim ?
+Ürün statülerine batch-result servisinden ulaşabilirsiniz.
+
+Kategorilerin Alınması
+
+Kategori Listesi (product-category)
+create servisine yapılacak isteklerde gönderilecek kategori bilgilerine ait ID değerleri bu servis kullanılarak alınacaktır.
+
+GET product-category
+https://merchantapi.idefix.com/pim/product-category
+Örnek Servis Cevabı:
+
+{
+[  
+  {
+    "id": 522,
+    "parentId": 0,
+    "subs": [
+      {
+        "id": 1192,
+        "parentId": 522,
+        "subs": [
+          {
+            "id": 545,
+            "parentId": 1192,
+            "subs": [],
+            "name": "Salopet",
+            "topCategory": 522
+          },
+          {
+            "id": 546,
+            "parentId": 1192,
+            "subs": [],
+            "name": "Tulum",
+            "topCategory": 522
+          }
+        ], 
+        "name": "Salopet & Tulum",
+        "topCategory": 522
+      }
+    ]
+  "name": "Salopet & Tulum",
+  "topCategory": 522
+  }
+]
+}
+Response Parametreleri
+Parametre Ad	Açıklama
+id	Kategorinin idefix sistemindeki ID bilgisidir.
+name	Kategorinin adıdır.
+parentId	Kategorinin bağlı olduğu bir üst kategori bilgisidir.
+subs	Bulunulan kategorinin alt kategorileridir. Eğer alt kategori yoksa subs alanı boş döner.
+topCategory	Kategorinin bağlı olduğu 1. seviye kategori bilgisidir.
+
+
+Kategori Özellik Listesi
+
+Kategori Özellik Listesi (category-attribute)
+create servisine yapılacak isteklerde gönderilecek attributes bilgileri ve detayları bu servis kullanılarak alınmalıdır.
+
+GET category-attribute
+https://merchantapi.idefix.com/pim/category-attribute/{categoryID}
+Ürün create etmek için kategori özelliklerini almanız gerekecektir. Bunun için ise en alt seviyedeki kategori ID bilgisi kullanılmalıdır. Seçtiğiniz kategorinin alt kategorileri var ise bu kategori bilgisi ile ürün oluşturamazsınız.
+Ürün create etmek için attributeleri çektiğinizde required = true olan alanlar ürün oluşturma isteğinde mutlaka gönderilmelidir. Aksi halde ürününüz idefix sisteminde oluşmayacaktır.
+Örnek Servis Cevabı:
+{
+  "id": 546,
+  "name": "Tulum",
+  "categoryAttributes": [
+    {
+      "attributeId": 24,
+      "attributeTitle": "Dahili Hafıza",
+      "allowCustom": false,
+      "categoryId": 546,
+      "required": true,
+      "isVariant": true,
+      "isSlicer": true,
+      "attributeValues": [
+        {
+          "id": 93301,
+          "name": "1 TB"
+        },
+        {
+          "id": 93300,
+          "name": "6 GB"
+        },
+        {
+          "id": 93299,
+          "name": "1 GB"
+        }
+      ]
+    }
+  ]
+}
+Response Parametreleri
+Parametre Ad	Açıklama
+id	Kategorinin idefix sistemindeki ID bilgisidir.
+name	Kategorinin idefix sistemindeki isim bilgisidir.
+attributeId	Kategorideki özellik ID bilgisidir.
+attributeTitle	Kategorideki özellik adıdır.
+allowCustom	true ise ürün create edilirken ID yerine freetext (string) gönderim yapılmalıdır.
+required	true ise ürün create edilirken ilgili özelliklerin attributes / attributeValues alanında gönderilmesi gerekmektedir.
+isSlicer	true ise idefix.com önyüzünde ürünler bu özelliğe göre farklı şekilde listelenir.
+isVariant	İlgili özelliğin varyant olup olmadığı bilgisidir. idefix.com’da ürün görünürken bu özelliğin varyant bilgisini ifade eder.
+attributeValues.id	Kategorideki özellik değeri için girilebilecek değer ID bilgisidir.
+attributeValues.name	Kategorideki özellik değeri için girilebilecek değer adıdır.
+
+Marka Listesi
+
+Marka Listesi (brand)
+create servisine yapılacak isteklerde gönderilecek marka bilgisi ve detayları bu servis kullanılarak alınmalıdır.
+
+GET brand
+https://merchantapi.idefix.com/pim/brand
+Parametreler
+Parametre Ad	Açıklama
+page	Servis cevabında hangi sayfadaki markaların getirileceğini belirtir.
+size	Bir servis cevabında yer alacak marka sayısını belirtir.
+Örnek Servis Cevabı:
+[
+    {
+        "id": 3573,
+        "title": "Gliss",
+        "slug": "gliss",
+        "description": null,
+        "metaKeyword": null,
+        "metaTitle": null,
+        "metaDescription": null,
+        "exclusiveBrand": true,
+        "logo": null,
+        "bookPublisher": false
+    },
+    {
+        "id": 3574,
+        "title": "Markayeni",
+        "slug": "markayeni",
+        "description": "<p>asdasd</p>",
+        "metaKeyword": "asdasd",
+        "metaTitle": "32213",
+        "metaDescription": "asdasddsa",
+        "exclusiveBrand": true,
+        "logo": null,
+        "bookPublisher": true
+    }
+]
+Response Parametreleri
+Parametre Ad	Açıklama
+bookPublisher	İlgili değerin marka mı yoksa yayınevi mi olduğunu belirtir.
+False: İlgili değer markadır.
+
+Marka Listesi Filtreleme
+
+Marka Listesi Filtreleme (brand/by-name)
+create servisine yapılacak isteklerde gönderilecek marka bilgisini ismi ile filtreli kullanmak isterseniz bu servis kullanılmalıdır.
+
+GET by-name
+https://merchantapi.idefix.com/pim/brand/by-name?title={markaIsmi}
+Parametre Ad	Açıklama
+title	Aranacak marka ismi
+Örnek Servis Cevabı:
+{
+    "id": 1000108,
+    "title": "Apple",
+    "slug": "apple-1000108",
+    "description": null,
+    "metaKeyword": null,
+    "metaTitle": null,
+    "metaDescription": null,
+    "exclusiveBrand": false,
+    "logo": null,
+    "bookPublisher": false
+}
+Response Parametreleri
+Parametre Ad	Açıklama
+bookPublisher	İlgili değerin marka ya da yayınevi olduğu bilgisini göstermek için yer alır. False: ilgili değer markadır.
+
+Marka Id Arama
+
+Marka Id Arama (brand)
+create servisine yapılacak isteklerde gönderilecek marka bilgisini id olarak aramak isterseniz bu servis kullanılmalıdır.
+
+GET brand
+https://merchantapi.idefix.com/pim/brand/{markaId}
+Parametre Ad	Açıklama
+brandId	Aranacak marka Id
+Örnek Servis Cevabı:
+{
+    "id": 1000108,
+    "title": "Apple",
+    "slug": "apple-1000108",
+    "description": null,
+    "metaKeyword": null,
+    "metaTitle": null,
+    "metaDescription": null,
+    "exclusiveBrand": false,
+    "logo": null,
+    "bookPublisher": false
+}
+Response Parametreleri
+Parametre Ad	Açıklama
+bookPublisher	İlgili değerin marka ya da yayınevi olduğu bilgisini göstermek için yer alır. False: ilgili değer markadır.
+
+Marka İsim Arama
+
+Marka İsim Arama (brand/search-by-name)
+create servisine yapılacak isteklerde gönderilecek marka bilgisini isim olarak aramak isterseniz bu servis kullanılmalıdır.
+
+GET search-by-name
+https://merchantapi.idefix.com/pim/brand/search-by-name?title={markaIsmi}
+Parametre Ad	Açıklama
+title	Aranacak marka ismi
+Örnek Servis Cevabı:
+{
+    "id": 1000108,
+    "title": "Apple",
+    "slug": "apple-1000108",
+    "description": null,
+    "metaKeyword": null,
+    "metaTitle": null,
+    "metaDescription": null,
+    "exclusiveBrand": false,
+    "logo": null,
+    "bookPublisher": false
+}
+Response Parametreleri
+Parametre Ad	Açıklama
+bookPublisher	İlgili değerin marka ya da yayınevi olduğu bilgisini göstermek için yer alır. False: ilgili değer markadır.
+
+Sevkiyat ve İade Adres Listesi
+
+İade ve Sevkiyat Adres Bilgileri (address)
+create servisine yapılacak isteklerde sistemde tanımlı olan gönderilecek iade ve sevkiyat adresinizin bilgilerine ve bu bilgilere ait ID değerlerine bu servis üzerinden erişebilirsiniz.
+
+GET address
+https://merchantapi.idefix.com/pim/vendor/{vendorId}/address
+Örnek Servis Cevabı:
+[
+  {
+    "id": 6,
+    "addressType": "return",
+    "cityText": "İSTANBUL",
+    "neighborhoodText": "GÜZELTEPE MAH",
+    "postalCode": "34680",
+    "fullAddress": "test adresidir",
+    "isDefault": true,
+    "cityId": 40,
+    "districtId": 1354,
+    "countyId": 484,
+    "neighborhoodId": 36334
+  },
+  {
+    "id": 5,
+    "addressType": "invoice",
+    "cityText": "İSTANBUL",
+    "neighborhoodText": "GÜZELTEPE MAH",
+    "postalCode": "34680",
+    "fullAddress": "test adresidir.",
+    "isDefault": true,
+    "cityId": 40,
+    "districtId": 1354,
+    "countyId": 484,
+    "neighborhoodId": 36334
+  },
+  {
+    "id": 4,
+    "addressType": "shipping",
+    "cityText": "İSTANBUL",
+    "neighborhoodText": "SALACAK MAH",
+    "postalCode": "34668",
+    "fullAddress": "test adresidir. ",
+    "isDefault": true,
+    "cityId": 40,
+    "districtId": 1361,
+    "countyId": 484,
+    "neighborhoodId": 36351
+  }
+]
+
+Kargo Firma Listesi
+
+Kargo Şirketleri Listesi (cargo-company)
+create servisine yapılacak isteklerde gönderilecek kargo firma bilgilerine ait ID değerleri bu servis kullanılarak alınacaktır.
+
+GET cargo-company
+https://merchantapi.idefix.com/pim/cargo-company
+Örnek Servis Cevabı:
+[
+    {
+        "id": 5,
+        "title": "Yurtiçi Kargo",
+        "code": "YURTİCİ",
+        "taxNumber": "123456"
+    },
+    {
+        "id": 7,
+        "title": "KARGOMsende",
+        "code": "KRGSENDE",
+        "taxNumber": "1234567890"
+    },
+    {
+        "id": 3,
+        "title": "Aras Kargo",
+        "code": "ARAS",
+        "taxNumber": "6789568335"
+    }
+]
+
+Platform Kargo Profil Listesi
+
+Platform Kargo Profil Listesi (profile/list)
+Platformda tanımlı bulunan kargo profil bilgilerine ait ID değerleri bu servis kullanılarak alınacaktır.
+
+GET profile/list
+https://merchantapi.idefix.com/pim/cargo-company/profile/list
+Örnek Servis Cevabı:
+[
+    {
+        "title": null,
+        "cargoCompany": {
+            "id": 45,
+            "title": "Demo Kargo",
+            "code": "Demo",
+            "taxNumber": "1234567891"
+        },
+        "status": true,
+        "cargoIntegrationUrl": "test",
+        "cargoTrackingUrl": "test",
+        "cargoUserCredential": [
+            "Demo kargo"
+        ],
+        "isPlatformTrackingSupport": false,
+        "isSellerTrackingSupport": false,
+        "isPlatformAgreementSupport": false,
+        "isSellerAgreementSupport": true,
+        "isPlatformCargoSend": false,
+        "isSellerCargoSend": false,
+        "acceptReturn": false,
+        "fullCoverage": true,
+        "acceptHomeReturn": false
+    },
+    {
+        "title": null,
+        "cargoCompany": {
+            "id": 45,
+            "title": "Demo Kargo",
+            "code": "Demo",
+            "taxNumber": "1234567891"
+        },
+        "status": true,
+        "cargoIntegrationUrl": "sss.com.tr",
+        "cargoTrackingUrl": "sssddd.com.tr",
+        "cargoUserCredential": [
+            "Demo kargo"
+        ],
+        "isPlatformTrackingSupport": false,
+        "isSellerTrackingSupport": false,
+        "isPlatformAgreementSupport": false,
+        "isSellerAgreementSupport": true,
+        "isPlatformCargoSend": false,
+        "isSellerCargoSend": false,
+        "acceptReturn": false,
+        "fullCoverage": true,
+        "acceptHomeReturn": false
+    }
+]
+Response Parametreleri
+Parametre Ad	Açıklama
+isPlatformTrackingSupport	Platform öder anlaşmalı çalışılan kargoda, platform olarak takip yapılabildiği bilgisidir.
+isSellerTrackingSupport	Platform olarak satıcı adına kargo takibi yapılıp yapılamadığı bilgisidir.
+isPlatformAgreementSupport	Platform anlaşmalı bir kargo olduğunu belirtir.
+isSellerAgreementSupport	Satıcı anlaşmalı bir kargo olduğunu belirtir.
+isPlatformCargoSend	Platform öder anlaşmalı çalışılan kargoda, kargo key alınıp alınamadığı bilgisidir.
+isSellerCargoSend	Platform olarak satıcı adına kargo key alınıp alınamadığı bilgisidir.
+acceptReturn	Kargonun iade sürecini desteklediği bilgisidir.
+fullCoverage	Ulusal kargo (tüm ülke genelinde hizmet veren) olduğunu belirtir.
+acceptHomeReturn	Kargonun evden iade hizmetini desteklediği bilgisidir.
+
+Satıcı Kargo Profil Listesi
+
+Satıcı Kargo Profil Listesi (vendor/profile/list)
+Satıcıya tanımlı kargo profil bilgilerine ait ID değerleri bu servis kullanılarak alınacaktır.
+
+GET vendor/profile/list
+https://merchantapi.idefix.com/pim/cargo-company/{vendorId}/profile/list
+Örnek Servis Cevabı:
+[
+  {
+    "id": 104,
+    "vendorId": 3,
+    "title": null,
+    "cargoCompany": {
+      "id": 61,
+      "title": "Sürat Kargo",
+      "code": "Surat",
+      "taxNumber": "2131231231"
+    },
+    "status": true,
+    "isPlatformIntegrated": true,
+    "cargoIntegrationUrl": "https://www.suratkargo.com.tr/",
+    "cargoTrackingUrl": "https://www.suratkargo.com.tr/",
+    "cargoUserCredential": [],
+    "isPlatformTrackingSupport": true,
+    "isPlatformAgreementSupport": true,
+    "isSellerAgreementSupport": true,
+    "isPlatformCargoSend": true,
+    "isSellerCargoSend": false,
+    "acceptReturn": true,
+    "fullCoverage": true,
+    "acceptHomeReturn": false,
+    "startAt": "2023-02-19T00:00:00+03:00"
+  },
+  {
+    "id": 103,
+    "vendorId": 3,
+    "title": null,
+    "cargoCompany": {
+      "id": 61,
+      "title": "Sürat Kargo",
+      "code": "Surat",
+      "taxNumber": "2131231231"
+    },
+    "status": true,
+    "isPlatformIntegrated": true,
+    "cargoIntegrationUrl": "https://www.suratkargo.com.tr/",
+    "cargoTrackingUrl": "https://www.suratkargo.com.tr/",
+    "cargoUserCredential": [],
+    "isPlatformTrackingSupport": true,
+    "isPlatformAgreementSupport": true,
+    "isSellerAgreementSupport": true,
+    "acceptReturn": true,
+    "fullCoverage": true,
+    "acceptHomeReturn": false,
+    "startAt": "2023-02-19T00:00:00+03:00"
+  },
+  {
+    "id": 102,
+    "vendorId": 3,
+    "title": null,
+    "cargoCompany": {
+      "id": 61,
+      "title": "Sürat Kargo",
+      "code": "Surat",
+      "taxNumber": "2131231231"
+    },
+    "status": true,
+    "isPlatformIntegrated": true,
+    "cargoIntegrationUrl": "https://www.suratkargo.com.tr/",
+    "cargoTrackingUrl": "https://www.suratkargo.com.tr/",
+    "cargoUserCredential": [],
+    "isPlatformTrackingSupport": true,
+    "isPlatformAgreementSupport": true,
+    "isSellerAgreementSupport": true,
+    "isPlatformCargoSend": true,
+    "isSellerCargoSend": false,
+    "acceptReturn": true,
+    "fullCoverage": true,
+    "acceptHomeReturn": false,
+    "startAt": "2023-02-18T00:00:00+03:00"
+  },
+  {
+    "id": 99,
+    "vendorId": 3,
+    "title": null,
+    "cargoCompany": {
+      "id": 45,
+      "title": "Demo Kargo",
+      "code": "Demo",
+      "taxNumber": "1234567891"
+    },
+    "status": true,
+    "isPlatformIntegrated": true,
+    "cargoIntegrationUrl": "aaaaa.com.tr",
+    "cargoTrackingUrl": "bbbb.com.tr",
+    "cargoUserCredential": [],
+    "isPlatformTrackingSupport": true,
+    "isPlatformAgreementSupport": true,
+    "isSellerAgreementSupport": false,
+    "isPlatformCargoSend": true,
+    "isSellerCargoSend": false,
+    "acceptReturn": false,
+    "fullCoverage": true,
+    "acceptHomeReturn": false,
+    "startAt": "2023-02-24T00:00:00+03:00"
+  },
+  {
+    "id": 4,
+    "vendorId": 3,
+    "title": null,
+    "cargoCompany": {
+      "id": 45,
+      "title": "Demo Kargo",
+      "code": "Demo",
+      "taxNumber": "1234567891"
+    },
+    "status": true,
+    "isPlatformIntegrated": true,
+    "cargoIntegrationUrl": "sss.com.tr",
+    "cargoTrackingUrl": "sssddd.com.tr",
+    "cargoUserCredential": [],
+    "isPlatformTrackingSupport": false,
+    "isPlatformAgreementSupport": false,
+    "isSellerAgreementSupport": true,
+    "isPlatformCargoSend": false,
+    "isSellerCargoSend": false,
+    "acceptReturn": false,
+    "fullCoverage": true,
+    "acceptHomeReturn": false,
+    "startAt": "2023-02-20T00:00:00+03:00"
+  }
+]
+Response Parametreleri
+Parametre Ad	Açıklama
+isPlatformTrackingSupport	Platform öder anlaşmalı çalışılan kargoda, platform olarak takip yapılabildiği bilgisidir.
+isPlatformIntegrated	Platform entegrasyonlu olup olmadığı bilgisidir.
+isPlatformAgreementSupport	Platform anlaşmalı bir kargo olduğunu belirtir.
+isPlatformCargoSend	Platform öder anlaşmalı çalışılan kargoda, cargo key alınabilir mi bilgisidir.
+isSellerCargoSend	Platform olarak satıcı adına cargo key alınabilir mi bilgisidir.
+acceptReturn	Kargonun iadeyi de desteklediği bilgisidir.
+fullCoverage	Ulusal kargo demektir.
+acceptHomeReturn	Kargonun evden iadeyi de desteklediği bilgisidir.
+
+Ürünlerim Listesi
+
+Ürünlerim Listesi (list)
+Bu method marketplace sistemine gönderdiğiniz tüm ürünleri listelemenizi sağlar.
+
+Satıcının tüm ürün bilgilerini çekmek istediğinizde pagination kullanımı zorunludur.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+GET list
+https://merchantapi.idefix.com/pim/pool/{vendorId}/list
+Parametre Ad	Açıklama
+page	Servis cevabında hangi sayfadaki ürünlerin getirileceği bilgisi
+limit	Bir servis cevabında yer alacak ürün sayısı
+barcode	Barkod bazlı filtreleme yapılmak istenirse kullanılabilir
+state	Statü bazlı filtreleme yapılmak istenirse kullanılabilir
+Örnek Servis Cevabı:
+{
+  "products": [
+    {
+      "barcode": "8879615313500",
+      "title": "MATTEL Barbie Bebek Bakıcılığı Oyun Seti Esmer Bebek - Yeşil Biberon",
+      "productMainId": "FHY777",
+      "brandId": 68699,
+      "categoryId": 110665444,
+      "inventoryQuantity": 52,
+      "vendorStockCode": "FHY77YSL",
+      "weight": "195",
+      "description": "MATTEL Barbie Bebek Bakıcılığı Oyun Seti Esmer Bebek - Yeşil Biberon",
+      "price": 149,
+      "comparePrice": 159,
+      "vatRate": null,
+      "deliveryDuration": 1,
+      "deliveryType": "regular",
+      "cargoCompanyId": null,
+      "shipmentAddressId": null,
+      "returnAddressId": null,
+      "images": [
+        {
+          "url": "https://cdn.dsmcdn.com/mnresize/1200/1800/ty96/product/media/images/20210404/22/57317cde/59506322/1/1_org_zoom.jpg"
+        }
+      ],
+      "attributes": [
+        {
+          "attributeId": 7,
+          "attributeValueId": 103400,
+          "customAttributeValue": null
+        },
+        {
+          "attributeId": 1,
+          "attributeValueId": 100130,
+          "customAttributeValue": null
+        }
+      ],
+      "status": "not_matched",
+      "statusDateCreatedAt": "2023-02-07T11:00:23+03:00",
+      "reference": 528,
+      "failureReasons": null,
+      "matchedProduct": null,
+      "needAutoMatch": false,
+      "addType": "integration",
+      "erpId": null,
+      "authorId": null
+    },
+    {
+      "barcode": "8879615313219",
+      "title": "test MATTEL Barbie Bebek Bakıcılığı Oyun Seti Esmer Bebek - Yeşil Biberon",
+      "productMainId": "FHY777",
+      "brandId": 68699,
+      "categoryId": 110665444,
+      "inventoryQuantity": 61,
+      "vendorStockCode": "FHY77PMB",
+      "weight": "195",
+      "description": "MATTEL Barbie Bebek Bakıcılığı Oyun Seti Esmer Bebek - Yeşil Biberon",
+      "price": 149,
+      "comparePrice": 159,
+      "vatRate": null,
+      "deliveryDuration": 1,
+      "deliveryType": "regular",
+      "cargoCompanyId": null,
+      "shipmentAddressId": null,
+      "returnAddressId": null,
+      "images": [
+        {
+          "url": "https://m.media-amazon.com/images/I/81PuNLCAvwL.jpg"
+        }
+      ],
+      "attributes": [
+        {
+          "attributeId": 7,
+          "attributeValueId": 103400,
+          "customAttributeValue": null
+        },
+        {
+          "attributeId": 1,
+          "attributeValueId": 100090,
+          "customAttributeValue": null
+        }
+      ],
+      "status": "not_matched",
+      "statusDateCreatedAt": "2023-02-07T11:00:22+03:00",
+      "reference": 527,
+      "failureReasons": null,
+      "matchedProduct": null,
+      "needAutoMatch": false,
+      "addType": "integration",
+      "erpId": null,
+      "authorId": null
+    }
+  ]
+}
+Hızlı Ürün Ekleme
+
+Hızlı Ürün Ekleme(fast-listing)
+Bu method idefix katalogunda kayıtlı olan ve global barkod içeren ürünlerinizi mapping sürecine gerek olmadan hızlı bir şekilde satışa açmanızı sağlar. İstek içerisinde gönderdiğiniz ürünler idefix kataloğunda bulunmuyor ise bu method ile ürünleriniz sisteme yüklenmez. Bu sebeple ilk defa açılacak ürünler için “Ürün Oluşturma” methodu kullanılmalıdır.
+
+ℹ️ Bilgilendirme
+1. idefix kataloğuna eklenmek istenen ürünler için, request içerisinde beklenen tüm bilgiler eksiksiz olarak gönderilmelidir.
+2. Hızlı ürün yükleme işlemi sonrasında batchRequestId bilgisi döner. Bu ID ile hangi ürünlerin eşleştiği ve hangilerinin katalogda bulunmadığı için failed olduğu, Toplu hızlı ürün durumu sorgulama servisi üzerinden kontrol edilebilir.
+3. Eşleşen ürünler satıcı paneli üzerinden kontrol edilerek onaylanabilir veya reddedilebilir. Aynı işlemler API üzerinden approve-item ya da declined-item servisleri ile de gerçekleştirilebilir.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST fast-listing
+https://merchantapi.idefix.com/pim/catalog/{vendorId}/fast-listing
+olarak belirtilenler zorunlu parametrelerdir.
+Parametre Ad	Açıklama
+barcode *	Ürün barkodu
+title *	Ürün ismi
+vendorStockCode *	Ürünün satıcı tarafındaki stok kodudur
+price *	Ürünün idefix satış fiyatıdır
+comparePrice	Ürünün tavsiye edilen satış fiyatıdır
+inventoryQuantity *	Ürünün idefix satılabilir stok adedidir
+Örnek Servis İsteği:
+{
+  "items": [
+    {
+      "title": "test ismi",
+      "barcode": "194252707258",
+      "price": 20,
+      "comparePrice": 20,
+      "inventoryQuantity": 20,
+      "vendorStockCode": "dertyhtresa3"
+    }
+  ]
+} 
+Örnek Servis Cevabı:
+{
+    "items": [
+        {
+            "title": "test ismi",
+            "barcode": "194252707258",
+            "price": 20,
+            "comparePrice": 20,
+            "inventoryQuantity": 20,
+            "vendorStockCode": "dertyhtresa3",
+            "productId": 0,
+            "status": "created"
+        }
+    ],
+    "lastUpdatedAt": "2023-01-26T15:51:20+03:00",
+    "completedAt": null,
+    "createdAt": "2023-01-26T15:51:20+03:00",
+    "status": "CREATED",
+    "batchRequestId": "4b-63d27748b716c"
+} 
+
+Hızlı Ürün Ekleme Durum Sorgulama
+
+Hızlı Ürün Ekleme Durum Sorgulama(fast-listing-result)
+Bu metod ile daha once hızlı ürün ekleme response unda almış olduğunuz ‘batchRequestId’ bilgileri ile ürünlerinizin durumunu sorgulayabilirsiniz.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST fast-listing-result
+https://merchantapi.idefix.com/pim/catalog/{vendorId}/fast-listing-result/{batchID}
+Örnek Servis Cevabı:
+{
+  "items": [
+    {
+      "title": "test ismi",
+      "barcode": "194252707258",
+      "price": 20,
+      "comparePrice": 20,
+      "inventoryQuantity": 20,
+      "vendorStockCode": "dertyhtresa3",
+      "productId": 0,
+      "poolState": "waiting_vendor_approve",
+      "matchedProduct": {
+        "barcode": "194252707258",
+        "name": "iPhone 14 Pro Max 512 GB",
+        "brand": "Apple",
+        "category": "iPhone İOS Telefonlar",
+        "images": [
+          "https://static.idefiks.net/product/354/iphone-14-pro-max-512-gb-63bad5d5b8320.png"
+        ],
+        "attributes": [
+          {
+            "attributeId": 1,
+            "attributeValueId": 100020,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 157,
+            "attributeValueId": 411,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 262,
+            "attributeValueId": 1694958,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 264,
+            "attributeValueId": 5761,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 286,
+            "attributeValueId": 1696364,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 313,
+            "attributeValueId": 5584,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 639,
+            "attributeValueId": 1698042,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 646,
+            "attributeValueId": 1696963,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 856,
+            "attributeValueId": 6193,
+            "customAttributeValue": null
+          }
+        ]
+      },
+      "status": "completed",
+      "statusDateCreatedAt": "2023-01-26T15:51:21+03:00"
+    }
+  ],
+  "lastUpdatedAt": "2023-01-26T15:51:21+03:00",
+  "completedAt": "2023-01-26T15:51:21+03:00",
+  "createdAt": "2023-01-26T15:51:20+03:00",
+  "status": "COMPLETED",
+  "batchRequestId": "4b-63d27748b716c"
+} 
+Servisten Dönen Statüler
+Parametre Ad	Açıklama
+status	Ürün gönderimi sonrasında dönen ürünün güncel durum bilgisidir.
+Status Parametre Değerleri
+Değer	Açıklama
+COMPLETED	Gönderilen ürünün barkodu sistemde bulundu ve satıcı olarak eklendi.
+DECLINE	Gönderilen ürün ile ilgili sorunlar olduğu için ürün yüklenemedi.
+Hata Kodları
+Aşağıdaki hata kodları yalnızca status = DECLINE olduğunda döner.
+
+Hata Kodu	Açıklama
+PRODUCT_POOL_ALREADY_EXIST	Gönderilen ürün, ilgili satıcının ürün havuzunda zaten bulunmaktadır.
+PRODUCT_BARCODE_NOT_EXIST	Gönderilen barkod idefix kataloğunda bulunmamaktadır. Bu barkod için ürün oluşturma endpoint’ine gidebilirsiniz.
+VENDOR_CATEGORY_ACCESS_DENIED	İlgili satıcının bu kategoriye ürün ekleme yetkisi bulunmamaktadır.
+VENDOR_ACCESS_DENIED	Satıcı onaylı değil ise bu hata döner.
+BRAND_EXCLUSIVE_NOT_AUTHORIZED	İlgili satıcının bu markaya ürün ekleme yetkisi bulunmamaktadır.
+
+
+Hızlı Ürün Ekleme Durum Sorgulama
+
+Hızlı Ürün Ekleme Durum Sorgulama(fast-listing-result)
+Bu metod ile daha once hızlı ürün ekleme response unda almış olduğunuz ‘batchRequestId’ bilgileri ile ürünlerinizin durumunu sorgulayabilirsiniz.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST fast-listing-result
+https://merchantapi.idefix.com/pim/catalog/{vendorId}/fast-listing-result/{batchID}
+Örnek Servis Cevabı:
+{
+  "items": [
+    {
+      "title": "test ismi",
+      "barcode": "194252707258",
+      "price": 20,
+      "comparePrice": 20,
+      "inventoryQuantity": 20,
+      "vendorStockCode": "dertyhtresa3",
+      "productId": 0,
+      "poolState": "waiting_vendor_approve",
+      "matchedProduct": {
+        "barcode": "194252707258",
+        "name": "iPhone 14 Pro Max 512 GB",
+        "brand": "Apple",
+        "category": "iPhone İOS Telefonlar",
+        "images": [
+          "https://static.idefiks.net/product/354/iphone-14-pro-max-512-gb-63bad5d5b8320.png"
+        ],
+        "attributes": [
+          {
+            "attributeId": 1,
+            "attributeValueId": 100020,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 157,
+            "attributeValueId": 411,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 262,
+            "attributeValueId": 1694958,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 264,
+            "attributeValueId": 5761,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 286,
+            "attributeValueId": 1696364,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 313,
+            "attributeValueId": 5584,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 639,
+            "attributeValueId": 1698042,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 646,
+            "attributeValueId": 1696963,
+            "customAttributeValue": null
+          },
+          {
+            "attributeId": 856,
+            "attributeValueId": 6193,
+            "customAttributeValue": null
+          }
+        ]
+      },
+      "status": "completed",
+      "statusDateCreatedAt": "2023-01-26T15:51:21+03:00"
+    }
+  ],
+  "lastUpdatedAt": "2023-01-26T15:51:21+03:00",
+  "completedAt": "2023-01-26T15:51:21+03:00",
+  "createdAt": "2023-01-26T15:51:20+03:00",
+  "status": "COMPLETED",
+  "batchRequestId": "4b-63d27748b716c"
+} 
+Servisten Dönen Statüler
+Parametre Ad	Açıklama
+status	Ürün gönderimi sonrasında dönen ürünün güncel durum bilgisidir.
+Status Parametre Değerleri
+Değer	Açıklama
+COMPLETED	Gönderilen ürünün barkodu sistemde bulundu ve satıcı olarak eklendi.
+DECLINE	Gönderilen ürün ile ilgili sorunlar olduğu için ürün yüklenemedi.
+Hata Kodları
+Aşağıdaki hata kodları yalnızca status = DECLINE olduğunda döner.
+
+Hata Kodu	Açıklama
+PRODUCT_POOL_ALREADY_EXIST	Gönderilen ürün, ilgili satıcının ürün havuzunda zaten bulunmaktadır.
+PRODUCT_BARCODE_NOT_EXIST	Gönderilen barkod idefix kataloğunda bulunmamaktadır. Bu barkod için ürün oluşturma endpoint’ine gidebilirsiniz.
+VENDOR_CATEGORY_ACCESS_DENIED	İlgili satıcının bu kategoriye ürün ekleme yetkisi bulunmamaktadır.
+VENDOR_ACCESS_DENIED	Satıcı onaylı değil ise bu hata döner.
+BRAND_EXCLUSIVE_NOT_AUTHORIZED	İlgili satıcının bu markaya ürün ekleme yetkisi bulunmamaktadır.
+
+Stok ve Fiyat Gönderim
+
+Stok ve Fiyat Gönderimi (inventory-upload)
+Bu method kataloga eklenmiş onaylı ürünlerinize stok ve fiyat gönderebilirsiniz. Stok gönderiminiz sonrasında işleminizin durumunu sorgulamak için inventory-result servisine response da dönen batchRequestId ile sorgulama yapabilirsiniz.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST inventory-upload
+https://merchantapi.idefix.com/pim/catalog/{vendorId}/inventory-upload
+olarak belirtilenler zorunlu parametrelerdir.
+Parametre Ad	Açıklama
+barcode *	Stok ve fiyat göndereceğiniz barkod bilgisi
+price	Ürünün idefix satış fiyatı
+comparePrice	Ürünün tavsiye edilen satış fiyatidır. Bu fiyatı göndermek istemiyorsaniz 0 olarak göndermelisiniz.
+inventoryQuantity	Ürünün idefix satılabilir stok adedidir
+maximumPurchasableQuantity	Ürünün maximum satın alma adedidir.
+deliveryDuration	Ürünün kargoya verilme süresini ifade eder.
+deliveryType	Ürünün kargolanma tipini ifade eder. İki değer besleyebilirsiniz; regular ve same_day_shipping
+isZoneSale	Ürüne ait bölgesel satış olup olmadığının bilgisidir.
+Örnek Servis İsteği:
+{
+  "items": [
+    {
+      "barcode": "string",
+      "price": 3000,
+      "comparePrice": 3000,
+      "inventoryQuantity": 0,
+      "maximumPurchasableQuantity": 0,
+      "deliveryDuration": 1,
+      "deliveryType": "regular",
+      "isZoneSale": null
+    }
+  ]
+}
+Örnek Servis Cevabı:
+{
+  "items": [
+    {
+      "barcode": "8806088712239",
+      "price": 30,
+      "comparePrice": 50,
+      "inventoryQuantity": 50,
+      "maximumPurchasableQuantity": 0,
+      "deliveryDuration": 1,
+      "deliveryType": "regular",
+       "isZoneSale": null
+      "status": "completed"
+    }
+  ],
+  "lastUpdatedAt": "2022-10-20T10:25:01+03:00",
+  "completedAt": "2022-10-20T10:25:01+03:00",
+  "createdAt": "2022-10-20T10:25:01+03:00",
+  "status": "FAILED",
+  "batchRequestId": "101b-6350f7cdc8449"
+}
+
+Toplu Stok ve Fiyat Durum Sorgulama
+
+Stok- Fiyat Toplu İşlem Sorgulama(inventory-result)
+Bu method ile daha önce stok ve fiyat gönderim servisinden almış olduğunuz batchRequestId bilgisi ile durumu sorgulayabilirsiniz.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+GET inventory-result
+https://merchantapi.idefix.com/pim/catalog/{vendorId}/inventory-result/{batchId}
+Örnek Servis Cevabı:
+{
+   "items":[
+      {
+         "barcode":"8806088635767",
+         "price":30000,
+         "comparePrice":30000,
+         "inventoryQuantity":50,
+          "deliveryDuration": 1,
+          "deliveryType": "regular",
+         "status":"decline",
+         "statusDateCreatedAt":"2022-10-05T13:56:54+03:00",
+         "failureReasons":"NO_PRICE"
+      }
+   ],
+   "lastUpdatedAt":"2022-10-05T13:56:54+03:00",
+   "completedAt":"2022-10-05T13:56:54+03:00",
+   "createdAt":"2022-10-05T13:56:54+03:00",
+   "status":"COMPLETED",
+   "batchRequestId":"101b-633d62f6725ba"
+}
+status
+Stok ve fiyat gönderimi sonrasında işlemin sistemdeki güncel durum bilgisini ifade eder.
+Değer	Açıklama
+created	Stok ve fiyat talebi oluşturulmuştur.
+decline	Stok ve fiyat gönderimi sırasında hata oluşmuştur.
+completed	Stok ve fiyat gönderim işlemi başarıyla tamamlanmıştır.
+failureReasons
+Stok ve fiyat gönderimi sırasında bir hata alınması durumunda, hatanın sebebine ilişkin bilgileri içerir.
+Bu alan yalnızca status = decline olduğunda döner.
+Değer	Açıklama
+DATA_PARSE_ERROR	Gönderilen stok ve fiyat verileri parse edilememiştir.
+BATCH_NOT_EXIST	Gönderdiğiniz batch bilgisi sistemde bulunamadı.
+BATCH_ALREADY_PROCESSED	Gönderilen batch hâlihazırda işlenmektedir.
+PRODUCT_NOT_FOUND	Gönderilen barkod ürün havuzunda bulunmamaktadır.
+CATALOG_PRICE_LOCKED	Ürün fiyatı kilitlenmiştir, destek ekibi ile görüşülmelidir.
+
+
+Stok ve Fiyat Güncel Durum Sorgulama
+
+Stok ve Fiyat Güncel Durum Listesi(inventory-list)
+Bu method ile ürünlerinizin güncel stok ve fiyat bilgilerini sorgulayabilirsiniz.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+GET inventory-list
+https://merchantapi.idefix.com/pim/catalog/{vendorId}/inventory/list
+Örnek Servis Cevabı:
+{
+   "items":[
+      {
+         "barcode":"8806088635767",
+         "stockCode":"23D85F21",
+         "price":30000,
+         "comparePrice":30000,
+         "inventoryQuantity":50,
+      }
+   ]
+  }
+  
+  
+  Ürün Oluşturma
+
+Ürün Oluşturma (create)
+Ürünleriniz idefix MP sistemine yüklenirken bu metod kullanılmalıdır.
+
+Bu method ile ürün aktarımı sağlanmadan önce idefix Marka Liste ve Kategori / Kategori Özellik bilgileri servisleri üzerinden ilgili bilgiler alınmalıdır. Aksi halde ürünleriniz idefix sisteminde oluşmayacaktır.
+Bu method ile ürün aktarımı sağlanmadan önce attributeler çekildiğinde required = true olan alanlar ürün oluşturma isteğinde mutlaka gönderilmelidir. Aksi halde ürünleriniz idefix sisteminde oluşmayacaktır.
+Ürün aktarım işlemi sonrasında response içerisinde yer alan batchRequestId ile ürünlerinizin ve aktarım işleminin durumunu batch-result servisi üzerinden kontrol etmelisiniz.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+❗ NOT: Ürün güncelleme işlemleri API servisleri üzerinden yapılmamaktadır.
+POST create Tekli ürün:
+https://merchantapi.idefix.com/pim/pool/{vendorId}/create
+olarak belirtilenler zorunlu parametrelerdir.
+Parametre Ad	Açıklama
+barcode *	Ürünün barkodu
+title *	Ürünün ismi
+productMainId *	Ana ürün kodu
+brandId *	İdefix marka ID’si. Marka bilgilerini çekmek için Marka Liste servisini kullanabilirsiniz.
+categoryId *	İdefix kategori ID’si. Kategori bilgilerini çekmek için Kategori Liste servisini kullanabilirsiniz.
+inventoryQuantity *	Ürünün satılabilir stok adedi
+vendorStockCode *	Satıcının kendi sistemindeki ürün stok kodu
+desi	Ürünün kargoya verileceği paketin boyutsal ağırlığı
+weight	Ürünün ağırlığı
+description *	Ürün açıklama bilgileri
+price *	Ürünün idefix satış fiyatı
+comparePrice	Ürünün tavsiye edilen satış fiyatı
+vatRate *	Ürün KDV oranı (0, 1, 8, 18 gibi)
+deliveryType	regular, same_day_shipping
+cargoCompanyId	İdefix kargo firması bilgisi
+shipmentAddressId	Ürünün idefix sistemindeki sevkiyat depo adresi ID bilgisi
+returnAddressId	Ürünün idefix sistemindeki iade depo adresi ID bilgisi
+images.url *	Ürün görsellerine ait URL listesi. Görseller SSL sertifikalı https formatında olmalı ve bir barkod için maksimum 8 adet görsel eklenebilir.
+attributes.attributeId *	Ürünün kategori bilgisine göre gönderilebilecek özellik bilgileri
+originCountryId	Ürün denetim bilgileri gönderilecekse ülke menşei bilgisi
+manufacturer	Ürün denetim bilgileri gönderilecekse üretici bilgisi
+importer	Ürün denetim bilgileri gönderilecekse ithalatçı / yetkili temsilci bilgisi
+ceCompatibility	Ürün denetim bilgileri gönderilecekse CE uygunluk sembolü
+usageInstructionsImage	Ürün denetim bilgileri için kullanım talimatı görseli
+packageFrontImage	Ürün denetim bilgileri için ön yüz paket görseli
+packageBackImage	Ürün denetim bilgileri için arka yüz paket görseli
+productInfoFormImage	Ürün denetim bilgileri için ürün bilgi formu
+energyClassImage	Ürün denetim bilgileri için enerji sınıfı görseli
+energyNutritionImage	Ürün denetim bilgileri için enerji ve besin değerleri görseli
+lotInfo	Parti / Lot / SKT bilgisi
+Örnek Servis İsteği:
+{
+  "products": [
+    {
+      "barcode": "60511581",
+      "title": "dispacthtime Ürün 1",
+      "productMainId": "60511581",
+      "brandId": 1,
+      "categoryId": 15031706,
+      "inventoryQuantity": 20,
+      "vendorStockCode": "60511581",
+      "desi": 0,
+      "description": "dispacthtime Ürün 1",
+      "price": 110,
+      "comparePrice": 110,
+      "vatRate": 0,
+      "deliveryDuration": 21,
+      "deliveryType": "regular",
+      "cargoCompanyId": 0,
+      "shipmentAddressId": 0,
+      "returnAddressId": 0,
+      "images": [
+        {
+          "url": "https://image01.idefix.com/resize/800/0/product/258625/lenco-tt-27-dahili-speaker-pikap-kirmizi-665046ef23cc9.jpg"
+        },{
+          "url": "https://image01.idefix.com/resize/800/0/product/258625/lenco-tt-27-dahili-speaker-pikap-kirmizi-665046ef23cc9.jpg"
+        }
+      ],
+      "status": "string",
+      "statusDateCreatedAt": "2025-05-08T13:05:08.845Z",
+      "reference": 0,
+      "failureReasons": null,
+      "matchedProduct": "string",
+      "needAutoMatch": true,
+      "addType": "string",
+      "originCountryId": 12,
+      "manufacturer": "Üretici Test",
+      "importer": "string",
+      "ceCompatibility": true,
+      "usageInstructionsImage": "https://image01.idefix.com/resize/800/0/product/1269837/babyhope-436-akulu-araba-kirmizi-06043610-66c533c7b7136.jpg",
+      "packageFrontImage": "https://image01.idefix.com/resize/800/0/product/1269837/babyhope-436-akulu-araba-kirmizi-06043610-66c533c7b7136.jpg",
+      "packageBackImage": "https://image01.idefix.com/resize/800/0/product/1269837/babyhope-436-akulu-araba-kirmizi-06043610-66c533c7b7136.jpg",
+      "productInfoFormImage": "https://image01.idefix.com/resize/800/0/product/1269837/babyhope-436-akulu-araba-kirmizi-06043610-66c533c7b7136.jpg",
+      "energyClassImage": "https://image01.idefix.com/resize/800/0/product/1269837/babyhope-436-akulu-araba-kirmizi-06043610-66c533c7b7136.jpg",
+      "energyNutritionImage": "https://image01.idefix.com/resize/800/0/product/1269837/babyhope-436-akulu-araba-kirmizi-06043610-66c533c7b7136.jpg"
+      "lotInfo": null
+    }
+  ],
+  "lastUpdatedAt": "2025-05-08T13:05:08.845Z",
+  "completedAt": "2025-05-08T13:05:08.845Z",
+  "createdAt": "2025-05-08T13:05:08.845Z",
+  "status": "string",
+  "batchRequestId": "string"
+}
+POST create Varyantlı Ürün
+Bir ürünün birden fazla varyantı olması durumunda productMainId değeri aynı olacak şekilde (ör. ürünün 16 GB ve 64 GB hafızası gibi) varyantlı örnekte olduğu biçimde isteğin gönderilmesi beklenmektedir.
+Örnek Servis İsteği:
+{
+  "products": [
+    {
+      "barcode": "8879615313219",
+      "title": "test MATTEL Barbie Bebek Bakıcılığı Oyun Seti Esmer Bebek - Yeşil Biberon",
+      "productMainId": "FHY777",
+      "brandId": 68699,
+      "categoryId": 110665444,
+      "inventoryQuantity": 61,
+      "vendorStockCode": "FHY77PMB",
+      "desi": 0 ,
+      "weight": 195,
+      "description": "MATTEL Barbie Bebek Bakıcılığı Oyun Seti Esmer Bebek - Yeşil Biberon",
+      "price": 149,
+      "comparePrice": 159,
+      "vatRate": 18,
+      "deliveryDuration": 1,
+      "deliveryType": "regular",
+      "cargoCompanyId": null,
+      "shipmentAddressId": null,
+      "returnAddressId": null,
+      "images": [
+        {
+          "url": "https://m.media-amazon.com/images/I/81PuNLCAvwL.jpg"
+        }
+      ],
+      "attributes": [
+        {
+          "attributeId": 7,
+          "attributeValueId": 103400,
+          "customAttributeValue": null
+        },
+        {
+          "attributeId": 1,
+          "attributeValueId": 100090,
+          "customAttributeValue": null
+        }
+      ],
+      "erpId": null,
+      "authorId": null
+    },
+    {
+      "barcode": "8879615313500",
+      "title": "MATTEL Barbie Bebek Bakıcılığı Oyun Seti Esmer Bebek - Yeşil Biberon",
+      "productMainId": "FHY777",
+      "brandId": 68699,
+      "categoryId": 110665444,
+      "inventoryQuantity": 52,
+      "vendorStockCode": "FHY77YSL",
+      "weight": 195,
+      "description": "MATTEL Barbie Bebek Bakıcılığı Oyun Seti Esmer Bebek - Yeşil Biberon",
+      "price": 149,
+      "comparePrice": 159,
+      "vatRate": 18,
+      "deliveryDuration": 1,
+      "deliveryType": "regular",
+      "cargoCompanyId": null,
+      "shipmentAddressId": null,
+      "returnAddressId": null,
+      "images": [
+        {
+          "url": "https://cdn.dsmcdn.com/mnresize/1200/1800/ty96/product/media/images/20210404/22/57317cde/59506322/1/1_org_zoom.jpg"
+        }
+      ],
+      "attributes": [
+        {
+          "attributeId": 7,
+          "attributeValueId": 103400,
+          "customAttributeValue": null
+        },
+        {
+          "attributeId": 1,
+          "attributeValueId": 100130,
+          "customAttributeValue": null
+        }
+      ],
+      "erpId": null,
+      "authorId": null
+    }
+  ]
+}
+
+Toplu Ürün Durumu Sorgulama
+
+Ürün Toplu İşlem Sorgulama(batch-result)
+Bu metod ile ürün create işleminde almış olduğunuz ‘batchRequestId’ bilgisi ile ürünlerinizin durumunu sorgulayabilirsiniz. Alacağınız statüye göre belli endpointlerde ya da merchant center backoffice ekranları üzerinde işlemler yapmanız gerekecektir.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+GET batch-result
+https://merchantapi.idefix.com/pim/pool/{vendorId}/batch-result/{batchId}
+Örnek Servis Cevabı:
+{
+    "products": [
+        {
+            "barcode": "16925281947333",
+            "title": "JBL Tune 560Bt Wireless Kulaklık",
+            "productMainId": "Test2123der82s33392",
+            "brandId": 68540,
+            "categoryId": 110682144,
+            "inventoryQuantity": 19,
+            "vendorStockCode": "301823219133543",
+            "weight": 195,
+            "description": "Kablosuz Bluetooth Akışı Eller serbest aramalar 16saat pil ömrü - 2saat şarj süresi ve hızlı şarj (5dk = 1saat)",
+            "price": 159,
+            "comparePrice": 189,
+            "vatRate": 18,
+            "deliveryDuration": 1,
+            "deliveryType": "regular",
+            "cargoCompanyId": null,
+            "shipmentAddressId": null,
+            "returnAddressId": null,
+            "images": [
+                {
+                    "url": "https://i.dr.com.tr/cache/500x400-0/originals/0001909754002-3.jpg"
+                }
+            ],
+            "attributes": [
+                {
+                    "attributeId": 188,
+                    "attributeValueId": 110330,
+                    "customAttributeValue": null
+                },
+                {
+                    "attributeId": 1,
+                    "attributeValueId": 100140,
+                    "customAttributeValue": null
+                }
+            ],
+            "status": "decline",
+            "statusDateCreatedAt": "2023-02-07T10:23:56+03:00",
+            "reference": 385,
+            "failureReasons": "CATEGORY_MANDATORY_ATTRIBUTE_MISSED",
+            "matchedProduct": null,
+            "needAutoMatch": false,
+            "addType": "integration",
+            "erpId": null,
+            "authorId": null
+        }
+    ],
+    "lastUpdatedAt": "2023-02-07T10:23:56+03:00",
+    "completedAt": "2023-02-07T10:23:56+03:00",
+    "createdAt": "2023-02-07T10:23:56+03:00",
+    "status": "COMPLETED",
+    "batchRequestId": "4b-63e1fc8c78387"
+}
+Servisten Dönen Parametreler
+Parametre Ad	Açıklama
+status	Ürün gönderimi sonrasında dönen ürünün güncel durum bilgisidir. Detaylı tablo aşağıda "Ürün Statüleri" tablosunda paylaşılmıştır.
+failureReasons	Ürün gönderimi sırasında hata alınması durumunda, hata sebebine ilişkin detaylı bilgileri içerir.
+matchedProduct	Gönderilen ürünün idefix sistemindeki eşleşen ürün karşılığıdır.
+failureReasons Hata Kodları
+Hata Kodu	Açıklama
+CATEGORY_MANDATORY_ATTRIBUTE_MISSED	Kategorinin zorunlu olarak gönderilmesi gereken özellik bilgisi eksiktir.
+ATTRIBUTE_MULTIPLE_NOT_ALLOWED	Aynı attribute birden fazla kez gönderilmiştir.
+CUSTOM_ATTRIBUTE_NOT_SUPPORTED_YET	Sistemde tanımlı olmayan bir özellik gönderilmiştir.
+ATTRIBUTEVALUE_NOT_DEFINED	Sistemde tanımlı olmayan özellik değeri gönderilmiştir.
+BRAND_NOT_EXIST	Böyle bir marka tanımı idefix sisteminde bulunmamaktadır.
+VENDOR_RETURN_ADDRESS_NOT_CORRECT	Gönderilen iade adresi ile sistemde tanımlı iade adresi uyuşmamaktadır.
+VENDOR_SHIPMENT_ADDRESS_NOT_CORRECT	Gönderilen sevkiyat adresi ile sistemde tanımlı sevkiyat adresi uyuşmamaktadır.
+PRODUCT_IMAGE_MANDATORY_ONCREATE	Ürün görseli zorunludur.
+VENDOR_CATEGORY_ACCESS_DENIED	Satıcının ilgili kategoriye ürün ekleme yetkisi bulunmamaktadır.
+BRAND_EXCLUSIVE_NOT_AUTHORIZED	Satıcı ilgili marka için münhasır yetkiye sahip değildir.
+VENDOR_BRAND_ACCESS_DENIED	Satıcının markaya erişim yetkisi bulunmamaktadır.
+VENDOR_ACCESS_DENIED	Satıcı onaylı değildir.
+DATA_PARSE_ERROR	Gönderilen request içeriği parse edilememiştir.
+NO_BATCH_ID_EXIST	Hatalı veya sistemde bulunmayan batchId gönderilmiştir.
+PRODUCT_POOL_ALREADY_EXIST	Ürün zaten satıcının ürün havuzunda bulunmaktadır.
+VENDOR_IN_VACATION_MODE	Satıcının tatil modu aktiftir.
+BRAND_FAILED_TO_MATCH	Ürün katalogda yer almaktadır ancak gönderilen marka katalogdaki marka ile uyuşmamaktadır. Doğru marka ID bilgisi response içerisinde iletilir.
+CATEGORY_FAILED_TO_MATCH	Ürün katalogda yer almaktadır ancak gönderilen kategori katalogdaki kategori ile uyuşmamaktadır. Doğru kategori ID bilgisi response içerisinde iletilir.
+Ürün Statüleri
+Değer	Açıklama
+waiting_catalog_action	Ürün inceleme sürecindedir.
+waiting_vendor_approve	Eklenen ürün idefix kataloğunda mevcuttur. Ürünü satışa açmak veya reddetmek için approve-item / decline-item servisleri kullanılabilir.
+ready_for_sale	Ürün satışa açılmaya hazırdır.
+vendor_declined	Ürünün eşleşmesi satıcı tarafından reddedilmiştir.
+missing_info	Ürüne ait eksik bilgi bulunmaktadır.
+platform_declined	Ürün platform tarafından reddedilmiştir.
+not_matched	Ürün katalogda bulunan bir ürün ile eşleştirilememiştir. Ürün operatörler tarafından incelemeye alınır; onay, red veya revize gönderim işlemleri yapılabilir. Ürünlerinizi ve güncel durumunu list servisinden görüntüleyebilirsiniz.
+auto_matched	Ürün katalogda bulunan bir ürün ile otomatik olarak eşleştirilmiştir.
+manual_matched	Ürün manuel olarak eşleştirilmiştir.
+Batch Statüleri
+Değer	Açıklama
+created	Talep oluşturuldu.
+completed	İşlem başarıyla tamamlandı.
+running	İşlem devam ediyor.
+failed	İşlem başarısız oldu.
+cancelled	İstek iptal edildi.
+
+
+Ürün Merchant Onay
+
+Ürün Merchant Onayı(approve-item)
+create servisine yapılan isteklerde idefix kataloğunda gönderdiğiniz ürün ile eşleşen statüsünde olan ürünlerin doğruluğunu onaylayıp ürün onaylama yapabileceğiniz servistir. Dilerseniz bu işlemi servis ile yapmadan merchant center backoffice ekranları üzerinden de yapabilirsiniz.
+
+• Gönderilen ürün idefix sisteminde mevcut ise waiting_vendor_approve statüsüne düşer. Mevcut ürün bilgileri size sunulur ve gönderdiğiniz ürünler ile kontrolünüzün ardından onay veya red vermeniz beklenir.
+
+• Gönderilen ürün idefix sisteminde mevcut değil ise not_matched statüsüne düşer. Bu durumda idefix ekiplerinin aksiyon alması beklenir. Göndermiş olduğunuz ürünlerin güncel durumunu öğrenmek için size dönen batchId ile batch-result servisini çağırmalısınız.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST approve-item
+https://merchantapi.idefix.com/pim/pool/{vendorId}/approve-item
+Örnek Servis Cevabı:
+{
+  "items": [
+    {
+      "barcode": "string"
+    }
+  ]
+}
+
+
+Ürün Merchant Red
+
+Ürün Merchant Red(declined-item)
+create servisine yapılan isteklerde idefix kataloğunda gönderdiğiniz ürün ile eşleşen statüsünde olan ürünlerin doğruluğunu kontrol edip eğer aynı ürün değil ise ürün birleştirmeyi reddeceğiniz servistir.
+
+• Gönderilen ürün idefix sisteminde mevcut ise waiting_vendor_approve statüsüne düşer. Mevcut ürün bilgileri size sunulur ve gönderdiğiniz ürünler ile kontrolünüzün ardından onay veya red vermeniz beklenir.
+
+• Gönderilen ürün idefix sisteminde mevcut değil ise not_matched statüsüne düşer. Bu durumda idefix ekiplerinin aksiyon alması beklenir. Göndermiş olduğunuz ürünlerin güncel durumunu öğrenmek için size dönen batchId ile batch-result servisini çağırmalısınız.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST decline-item
+https://merchantapi.idefix.com/pim/pool/{vendorId}/decline-item
+Örnek Servis Cevabı:
+{
+  "items": [
+    {
+      "barcode": "string"
+    }
+  ]
+}
+
+
+CountryId Bilgisinin Alınması
+
+CountryId Bilgisinin Alınması (origin-country)
+create servisine yapılacak isteklerde ürün denetim bilgileri gönderilmek istenildiğinde gönderilecek ülke bilgilerine ait ID değerleri bu servis kullanılarak alınacaktır.
+
+GET origin
+https://merchantapi.idefix.com/pim/country/origin-country
+Parametre Ad	Açıklama
+name	Servis cevabında yer alacak ülkenin adı
+Örnek Servis Cevabı:
+    {
+        "id": 1,
+        "name": "Andorra"
+    },
+    {
+        "id": 2,
+        "name": "Birleşik Arap Emirlikleri"
+    },
+    {
+        "id": 3,
+        "name": "Afganistan"
+    }
+Response Parametreleri
+Parametre Ad	Açıklama
+id	Ülkeye ait tanımlı ID bilgisidir.
+name	Ülke adı bilgisidir.
+
+
+Sipariş sevkiyatlarının alınması
+
+shipment list/Sevkiyatlar Listesi (list)
+idefix sistemine ilettiğiniz ürünler için müşteriler tarafından sipariş edilen ve ödeme kontrolünden geçmiş olan her shipmentin bilgisini bu method ile alabilirsiniz. Satıcı bazında oluşturulan siparişler dokümanlarda shipment olarak adlandırılacaktır.
+
+Shipment datası alınırken gelen orderNumber değeri, ilgili shipment’ın idefix sistemindeki ana sipariş numarasına karşılık gelir. Aynı seviyede yer alan id değeri ise bu sipariş numarasına bağlı oluşturulmuş sevkiyatı temsil eder.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+Bilgilendirme: Kurumsal fatura için isCommercial değeri kontrol edilmelidir. Kurumsal fatura kesilmesi gereken durumda bu değer "1" olarak döner, bireysel fatura olması durumunda " " (boş) olarak döner. (isCommercial = 1) durumunda "company", "taxNumber" ve "taxOffice" bilgilerini invoiceAddress alanından alabilirsiniz. Bireysel faturada (isCommercial = " ") platformun uyguladığı indirim ve kuponlar response içerisinde ilgili parametrelerde 0 olarak döner. isLikeCommercial parametresi bireysel müşterinin kurumsal fatura talep ettiği durumlarda döner ve isCommercial parametresi ile aynı mantıkta çalışır.
+GET list
+https://merchantapi.idefix.com/oms/{vendorId}/list
+* ile belirtilen alanlar zorunlu parametrelerdir.
+
+Parametre Ad	Açıklama
+ids	Shipment numarası bazında sorgulama yapılabilir. Birden fazla değer virgül (,) ile gönderilebilir.
+orderNumber	Shipment’ın idefix sistemindeki ana sipariş numarasına karşılık gelir.
+state	Shipment statüsüne göre sorgulama yapılabilir. Gönderilebilecek state değerleri response tablosunda yer almaktadır.
+startDate	Belirli bir tarihten sonraki shipment’lar için sorgulama yapılabilir. Örnek format: 2022/09/30 23:59:59
+endDate	Belirtilen tarihe kadar olan shipment’lar için sorgulama yapılabilir. Örnek format: 2022/09/30 23:59:59
+lastUpdatedAt	Shipment’ın durumunun son güncellenme tarihini baz alır. Örnek format: 2022/09/30 23:59:59
+page	Sadece belirtilen sayfadaki verileri döndürür. Default değer: 1
+limit	Bir sayfada listelenecek maksimum kayıt adedini belirtir. Default değer: 10
+sortByField	Sıralama alanını belirtir. Varsayılan olarak shipment ID’ye göre sıralanır. id, createAt, updateAt parametreleri ile sorgulanabilir.
+sortDirection	Sıralama yönünü belirtir. Varsayılan olarak güncel ID’den eski ID’ye doğru sıralanır. desc, asc parametreleri ile sorgulanabilir.
+vendor *	İlgili satıcının ID bilgisidir.
+Örnek Servis Cevabı:
+{
+    "totalCount": 1,
+    "itemCount": 1,
+    "pageCount": 1,
+    "currentPage": 1,
+    "limit": 20,
+    "items": [
+        {
+            "invoiceAddress": {
+                "isCommercial": "",
+                "isLikeCommercial": "",
+                "id": 21403112,
+                "firstName": "Derya",
+                "lastName": "Kaya",
+                "company": null,
+                "address1": "Test adresidir.",
+                "city": "İstanbul",
+                "cityId": 34,
+                "cityPlate": "34",
+                "postalCode": "",
+                "neighboorhood": "Çengelköy",
+                "neighboorhoodId": 34000,
+                "county": "Üsküdar",
+                "countyId": 1708,
+                "countryCode": "TR",
+                "phone": "5555555555",
+                "fullName": "Derya Kaya",
+                "fullAddress": "Test adresidir. Çengelköy İstanbul ",
+                "taxOffice": "",
+                "taxNumber": "",
+                "identificationNumber": "52369854125",
+                "floor": "1",
+                "buildingNumber": "29",
+                "doorNumber": "1"
+            },
+            "shippingAddress": {
+                "isCommercial": "",
+                "isLikeCommercial": "",
+                "id": 21403112,
+                "firstName": "Derya",
+                "lastName": "Kaya",
+                "company": null,
+                "address1": "Test adresidir.",
+                "city": "İstanbul",
+                "cityId": 34,
+                "cityPlate": "34",
+                "postalCode": "",
+                "neighboorhood": "Çengelköy",
+                "neighboorhoodId": 34000,
+                "county": "Üsküdar",
+                "countyId": 1708,
+                "countryCode": "TR",
+                "phone": "5555555555",
+                "fullName": "Derya Kaya",
+                "fullAddress": "Test adresidir.Çengelköy İstanbul ",
+                "taxOffice": "",
+                "taxNumber": "",
+                "identificationNumber": "52369854125",
+                "floor": "1",
+                "buildingNumber": "29",
+                "doorNumber": "1"
+            },
+            "id": 60000003,
+            "orderNumber": "IDE642eabe9bd3b2",
+            "totalPrice": 54.9,
+            "totalDiscount": 0,
+            "discountedTotalPrice": 54.9,
+            "totalPlatformDiscount": 0,
+            "totalVendorDiscount": 0,
+            "customerId": 104710723,
+            "customerContactName": "Derya Kaya",
+            "customerContactMail": "1000019@idefixcustomer.com",
+            "customerTcNumber": null,
+            "cargoTrackingNumber": "11111",
+            "cargoTrackingUrl": "aaa.com",
+            "cargoCompany": "Yurtiçi Kargo",
+            "cargoTypeId": 1,
+            "cargoTypeName": "delivery",
+            "cargoProfileId": 3,
+            "cargoProfileName": "Yurtiçi Kargo Satıcı Öder",
+            "geoCode": null,
+            "createdAt": "2023-04-06T14:27:52+03:00",
+            "updatedAt": "2023-04-07T17:23:56+03:00",
+            "orderDate": "2023-04-06T11:24:25+03:00",
+            "histories": [
+                {
+                    "state": "created",
+                    "createdAt": "2023-04-06T14:27:52+03:00"
+                },
+                {
+                    "state": "shipment_ready",
+                    "createdAt": "2023-04-06T14:27:52+03:00"
+                },
+                {
+                    "state": "shipment_in_cargo",
+                    "createdAt": "2023-04-07T17:23:56+03:00"
+                },
+                {
+                    "state": "shipment_picking",
+                    "createdAt": "2023-04-07T14:02:56+03:00"
+                },
+                {
+                    "state": "shipment_invoiced",
+                    "createdAt": "2023-04-07T14:04:09+03:00"
+                }
+            ],
+            "status": "shipment_in_cargo",
+            "statusUpdatedAt": "2023-04-07T17:23:56+03:00",
+            "deliveryType": "regular",
+            "estimatedDeliveryDate": "2023-04-07T15:00:59+03:00",
+            "vendorTitle": "idefix",
+            "vendorId": 3,
+            "statusDescription": "Kargoya Verildi",
+            "cargoKey": null,
+            "items": [
+                {
+                    "productName": "İnsanın Anlam Arayışı",
+                    "id": 10000043,
+                    "barcode": "9786054054206",
+                    "erpId": "1284814001",
+                    "image": "https://static.idefix.net/resize/{size}product/26388/insanin-anlam-arayisi-642e3f0068526.jpg",
+                    "price": 54.9,
+                    "totalDiscount": null,
+                    "platformDiscount": 0,
+                    "vendorDiscount": 0,
+                    "discountedTotalPrice": 54.9,
+                    "currency": "TL",
+                    "itemStatus": "in_delivery",
+                    "comparePrice": 0,
+                    "vendorAmount": 54.9,
+                    "stateDescription": null,
+                    "brandName": "Okuyan Us Yayınları",
+                    "merchantSku": "9786054054206",
+                    "vatRate": 0,
+                    "commissionAmount": 0,
+                    "earningAmount": 32.4,
+                    "withholdingAmount": null,
+                    "lastShipmentDate": "2023-07-04T15:00:59+03:00",
+                    "customizableNote": null,
+                    "productAttributes": [
+                        {
+                            "attributeName": "Renk",
+                            "attributeValueName": "Siyah"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+Response Parametreleri
+Parametre Ad	Açıklama
+totalPrice	Header: İlgili sevkiyatın indirimler düşülmeden önceki toplam tutarıdır.
+totalDiscount	Header: Sevkiyat bazında platform ve vendor indirimlerinin toplamıdır. Items: Item bazında platform ve vendor indirimlerinin toplam tutarıdır.
+discountedTotalPrice	Header: Sevkiyat bazında indirimler düşüldükten sonraki toplam shipment tutarıdır. Items: İndirimler düşüldükten sonraki toplam item tutarıdır.
+totalPlatformDiscount	Header: Sevkiyat bazında platform tarafından uygulanan toplam indirim tutarıdır.
+totalVendorDiscount	Header: Sevkiyat bazında vendor tarafından uygulanan toplam indirim tutarıdır.
+platformDiscount	Items: Item bazında platform tarafından uygulanan indirim tutarıdır.
+vendorDiscount	Items: Item bazında vendor tarafından uygulanan indirim tutarıdır.
+commissionAmount	Items: Item bazında komisyon tutarıdır.
+earningAmount	Items: Item bazında satıcının hak ediş tutarıdır.
+Shipment Statüleri
+Parametre Ad	Açıklama
+created	Shipment idefix sisteminde ödemesi başarılı şekilde oluşturulmuştur. Shipment henüz toplanmaya hazır değildir.
+shipment_ready	Shipment’in hazırlanmaya başlanabileceğini belirten statüdür.
+shipment_picking	Shipment’in artık iptal edilemeyeceğini belirten statüdür. Shipment toplanmaya veya paket hazırlanmaya başlandığında bu statü bildirilmelidir. Bu statüyü beslemek için update-shipment-status servisi kullanılmalıdır.
+shipment_invoiced	Shipment’in faturası kesildiğinde bu statü bildirilmelidir. Bu statüyü beslemek için update-shipment-status servisi kullanılmalıdır.
+shipment_cancelled	İlgili shipment müşteri tarafından iptal edildiğinde dönen statüdür.
+shipment_unsupplied	İlgili shipment temin edilemedi olarak bildirildiğinde dönen statüdür.
+shipment_split	İlgili shipment için parçalı işlem yapıldığı durumda dönen statüdür.
+shipment_in_cargo	Shipment kargoya verildiğinde dönen statüdür.
+shipment_delivered	Shipment müşteriye teslim edildiğinde dönen statüdür.
+shipment_undeliver	Shipment müşteriye teslim edilemediğinde dönen statüdür.
+shipment_approved	Shipment için tüm süreçler tamamlandığında ve satıcı hak ediş hesaplama sürecine geçildiğinde dönen statüdür.
+
+
+İşçilik Bedeli Gönderme
+
+İşçilik Bedeli Gönderme (update-labor-cost-amount)
+İşçilik bedeli tutarını iletmek için bu servis kullanılmalıdır.
+
+Parametre Ad	Açıklama
+orderitemid	İşçilik bedeli gönderilecek ilgili ürünün id'sidir.
+laborCostAmount	İlgili orderitem için işçilik bedeli gönderilecek tutardır.
+Sevkiyatın statüsü "delivered" olana kadar bu servise istek gönderilebilir. "delivered" statüsü sonrası güncelleme yapılamaz.
+"laborCostAmount" 0'dan küçük olamaz ve item’in faturalandırılacak tutarından büyük olamaz.
+Yalnızca belirli kategori ID’leri için beslenebilir.
+POST
+https://merchantapi.idefix.com/oms/{vendor}/update-labor-cost-amount
+Örnek Servis İsteği:
+{
+ "laborCostAmountItemRequests": [
+{
+      "orderItemId": 2147483647,
+      "laborCostAmount": 0
+}
+  ]
+}
+Örnek Response:
+ {
+ "laborCostAmountItemRequests": [
+{
+      "orderItemId": 2147483647,
+      "laborCostAmount": 0
+}
+  ],
+  "laborCostAmountData": [
+    "string"
+]
+}
+
+
+Shipment Statü Güncelleme
+
+Shipment Statü Bilgileri Güncelleme (update-shipment-status)
+Oluşan shipmentlerin statülerini hazırlanıyor ya da faturalandı olarak bildirmek için kullanılacak servistir.
+
+Shipment depoda hazırlanma durumuna geçtiğinde ve sitenin önyüzünde müşteri tarafından iptale izin verilmek istenmiyor ise "picking" statüsüne güncellenmelidir.
+Shipment hazırlanıp faturalandığında ve bir fatura numarası oluşturulduğunda "invoiced" statüsüne güncellenmelidir.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST update-shipment-status:
+https://merchantapi.idefix.com/oms/{vendorId}/{shipmentId}/update-shipment-status
+* ile belirtilen alanlar zorunlu parametrelerdir.
+Parametre Ad	Açıklama
+shipmentID*	Statüsü güncellenmek istenen ilgili shipment ID bilgisidir.
+invoiceNumber	Shipment’in oluşan fatura numarasıdır.
+Örnek Servis İsteği:
+Picking:
+
+{
+  "status": "picking",
+  "invoiceNumber": "string"
+}
+Invoiced:
+
+{
+  "status": "invoiced",
+  "invoiceNumber": "11111112"
+}
+
+Fatura Linki Gönderme
+
+Fatura Linki Gönderme(invoice-link)
+Satıcının kendi sisteminde oluşan e-Arşiv ya da e-Fatura bilgisinin link detayının idefix sistemine gönderilmesi için bu servis kullanılmalıdır.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST invoice-link:
+https://merchantapi.idefix.com/oms/{vendorId}/{shipmentID}/invoice-link
+* ile belirtilen alanlar zorunlu alanlardır.
+Parametre Ad	Açıklama
+shipmentID*	Fatura linkinin gönderilmek istendiği ilgili shipment ID bilgisidir.
+Örnek Servis İsteği:
+{
+  "invoiceLink": "https://faturalinki.com"
+}
+
+Siparişlerin Bölünmesi
+
+Sipariş Bölme (split-package)
+Bu servis ile idefixte oluşan shipmentlarinizi birden fazla sevkiyata bölebilirsiniz.
+
+Bu işlem sonrasında idefix sistemi tarafından aynı orderNumber üzerinde yeni bir shipmentId oluşur ve list servisinden döndürülür. Eski shipment’in durumu ise shipment_split olarak güncellenir. Bu sebeple shipment/list servisi ile güncel shipment’larınızı tekrar çekmelisiniz.
+Desen içerisinde shipment’i bölmek istediğiniz kısma ait item’ların bir paketini göndermelisiniz. Gönderilmeyen diğer item’lar otomatik olarak yeni bir shipment’in içerisine eklenir ve yeni shipment oluşur.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST split-package
+https://merchantapi.idefix.com/oms/{vendorId}/{shipmentId}/split-package
+* ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+shipmentID*	Bölünmek istenen ilgili shipment ID bilgisidir.
+items	Sipariş içerisindeki her bir kalemin ID bilgisini ifade eder.
+Örnek Servis İsteği:
+Picking:
+
+{
+  "splitPackageDetails": [
+    {
+      "items": [
+        {
+          "id": 48
+        },
+        {
+          "id": 49
+        },
+        {
+          "id": 50
+        },
+        {
+          "id": 51
+        },
+        {
+          "id": 52
+        }
+      ]
+    }
+  ]
+}
+
+
+Tedarik Edememe Sebep Listesi
+
+Tedarik Edememe/Noship Sebep Listesi(noship)
+unsupplied servisine yapılacak isteklerde gönderilecek iade sebep bilgilerine ait ID değerleri bu servis kullanılarak alınacaktır.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+GET noship
+https://merchantapi.idefix.com/oms/{vendorId}/reasons/noship
+Örnek Servis Cevabı:
+Picking:
+
+[
+  {
+    "id": 500,
+    "name": "Stok tukendi",
+    "reasonType": "noship",
+    "description": "Urunun stogu tukenmesi ve gonderimin gecikmesi gibi sebeplerle tedarik edilememesi durumunda secilmelidir.",
+    "createdAt": "2022-09-05T18:35:23+03:00",
+    "updatedAt": "2022-09-05T18:35:25+03:00",
+    "deletedAt": null
+  },
+  {
+    "id": 501,
+    "name": "Kusurlu/Defolu/Bozuk Urun",
+    "reasonType": "noship",
+    "description": "Urun kusurlu/defolu/bozuk oldugu için gonderilememesi durumunda seçilmelidir.",
+    "createdAt": "2022-09-05T18:35:22+03:00",
+    "updatedAt": "2022-09-05T18:35:26+03:00",
+    "deletedAt": null
+  },
+  {
+    "id": 502,
+    "name": "Hatali Fiyat",
+    "reasonType": "noship",
+    "description": "Yanliş fiyat beslenmesi durumunda seçilmelidir.",
+    "createdAt": "2022-09-05T18:35:20+03:00",
+    "updatedAt": "2022-09-05T18:35:28+03:00",
+    "deletedAt": null
+  },
+  {
+    "id": 504,
+    "name": "Entegrasyon Hatasi",
+    "reasonType": "noship",
+    "description": "Entegrasyon firmasindan kaynakli olarak hatali fiyat ya da stok aktariminda yaşanan sorunlarda seçilmelidir.",
+    "createdAt": "2022-09-05T18:35:18+03:00",
+    "updatedAt": "2022-09-05T18:35:31+03:00",
+    "deletedAt": null
+  }
+]
+
+
+Tedarik Edilemedi Bildirimi
+
+Tedarik Edilemedi Bildirimi(unsupplied)
+Satıcının shipmenti içesindeki ürünlerden bir ya da daha fazlasını tedarik edememe sebebi ile iptal etmesi gerektiği durumda kullanılacak servistir. Bu servis yardımı ile yapılan iptal sonrasında sipariş iptal edilir ve ilgili shipment icerisinde başka ürün kaldı ise bu ürünler ile birlikte yeni ID’li bir shipment oluşur.
+
+Tedarik edilemedi bilgisi iletildikten sonra ilgili shipment içerisinde ürün kalması durumunda idefix sistemi tarafından aynı orderNumber üzerinde yeni bir shipmentId oluşur. Buna ek olarak bağlı olduğu eski shipment bilgileri de list servisinden döndürülür. Bu durumda “Tedarik Edemedi” bildirimi sonrasında güncel shipment’lar tekrar çekilmelidir.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST unsupplied
+https://merchantapi.idefix.com/oms/{vendorId}/{shipmentId}/unsupplied
+* ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+shipmentID*	Tedarik edilemeyen ilgili shipment ID bilgisidir.
+id*	Shipment içerisindeki tedarik edilemeyen item ID bilgisidir.
+reasonId*	Tedarik edilemeyen shipment’in sebep ID bilgisidir. Bu sebeplere reasons/noship servisinden erişebilirsiniz.
+Örnek Servis İsteği:
+{
+  "items": [
+    {
+      "id": 5,
+      "reasonId": 502
+    }
+  ]
+}
+
+Kargo Kodu bildirme
+
+Kargo Kodu Bildirme(update-tracking-number)
+Bu method ile herhangi bir siparişin artık platform anlaşması üzerinden değil tedarikçinin kendi anlaşması üzerinden yapılacağı bilgisiyi göndermek üzere kullanılır. Sipariş statüsü shipment_in_cargo olarak otomatik güncellenir.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+trackingUrl parametresine ait link, gönderilen kargo firmasıyla uyumlu olmalıdır. Gönderilmeye çalışılan takip URL’i ile sipariş üzerinde seçilmiş kargo profili uyuşmazlığı olduğunda sistem uyarı/hata vermektedir. Bu durumda change-cargo-provider servisi kullanılarak ilgili shipment’a doğru kargo bilgisi gönderilmelidir.
+POST update-tracking-number
+https://merchantapi.idefix.com/oms/{vendorId}/{shipmentId}/update-tracking-number
+* ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+shipmentID*	Kargo kodu bildirilecek ilgili shipment ID bilgisidir.
+trackingUrl*	Kargo takip URL bilgisidir.
+trackingNumber*	Kargo takip numarasıdır.
+Örnek Servis İsteği:
+{
+  "trackingUrl": "string",
+  "trackingNumber": "string"
+}
+
+Alternatif Kargo Kodu Bildirme
+
+Alternatif Teslimat ile Gönderim(alternative-cargo-tracking)
+Alternatif teslimat yöntemi ile gönderim yapacağiniz shipmentleriniz için takip numarası gönderimi yapabileceğiniz servistir.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST alternative-cargo-tracking
+https://merchantapi.idefix.com/oms/{vendorId}/{shipmentId}/alternative-cargo-tracking
+* ile belirtilen alanlar zorunlu alanlardır.
+Parametre Ad	Açıklama
+shipmentID*	Kargo kodu bildirilecek ilgili shipment ID bilgisidir.
+trackingUrl	isPhoneNumber false ise kargo takip URL’i zorunlu olur ve bu alandan gönderilmelidir.
+phoneNumber	Satıcının alternatif teslimat ile ilgili bildirdiği telefon numarasıdır.
+isPhoneNumber	Alternatif teslimat ile gönderimlerde bu parametre true olduğunda buna bağlı olarak phoneNumber parametresi zorunlu olur ve telefon numarası gönderilir.
+vendorCargoProfile*	Satıcının alternatif teslimatta (kendi aracım, servis vb.) veya alternatif kargoda (platformun kargo durumunu sorgulayamadığı kargolar) kullanılacak profil ID bilgisidir. vendor/profile/list metodundan dönen isSellerTrackingSupport ve isPlatformAgreementSupport değerleri False olan profiller gönderilmelidir.
+trackingNumber	Kargo takip numarasıdır. isPhoneNumber false ise opsiyonel olarak gönderilir.
+boxQuantity	Kargo kutu sayısıdır.
+desi	Kargo desi bilgisidir.
+Örnek Servis İsteği:
+{
+  "trackingInfo": {
+    "trackingUrl": "https://denemekargo.com.tr/takip/6456456",
+    "phoneNumber": "5555555555"
+  },
+  "vendorCargoProfile": 5,
+  "isPhoneNumber": true,
+  "trackingNumber": "85858588585",
+  "boxQuantity": 1,
+  "desi": 5
+}
+
+Teslim Edildi Bilgisi Gönderme
+
+Teslim Edildi Bilgisi Gönderme(manuel-deliver)
+Bu method ile alternatif kargo ile yapılan gönderimleriniz için teslim bilgisinin bildirimini yapabilirsiniz.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST manuel-deliver
+https://merchantapi.idefix.com/oms/{vendorId}/{shipmentId}/manual-deliver
+*ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+shipmentID *	Teslim bilgisi gönderilecek ilgili shipment id dir.
+Örnek Servis İsteği:
+{
+  "deliverDocumentUrl": "string",
+  "deliveryCode": "string"
+}
+
+Desi, Koli Bilgisi Gönderme
+
+Desi, Koli Bilgisi Gönderme(update-box-info)
+Bu method ile lojistik kargo gönderileriniz için desi ve koli bilgisi gönderimi yapabilirsiniz.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST update-box-info:
+https://merchantapi.idefix.com/oms/{vendorId}/{shipmentId}/update-box-info
+*ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+shipmentID *	Desi, koli bilgisi gönderilecek ilgili shipment id dir.
+Örnek Servis İsteği:
+{
+  "boxQuantity": 2,
+  "desi": 5
+}
+
+Gönderi Bilgisi Değiştirme
+
+Gönderi Seçeneği Değişikliği(change-cargo-provider)
+Bu method ile platform öder anlaşmalı veya platform tarafından takip yapılabilen ilgili shipmentlarınızın gönderi kargosunu değiştirebilirsiniz.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+vendorCargoProvider bilgisine erişmek için vendor/cargo-company/profile metodunu çağırmalısınız.
+POST change-cargo-provider:
+https://merchantapi.idefix.com/oms/{vendorId}/{shipmentId}/change-cargo-provider/{vendorCargoProfile}
+*ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+shipmentID *	Gönderi seçeneği değiştirilecek shipment id dir.
+vendorCargoProfile *	Satıcının değiştirmek istediği kargo profil id si. vendor/cargo-company/profile methodundan dönen isSellerTrackingSupport veya isPlatformAgreementSupport değerlerinden herhangi biri True olan profiller gönderilmelidir.
+
+
+İade Listesi
+
+İade Listesi (claim-list)
+idefix sisteminde iade talebi oluşan shipmentları bu metod ile çekebilirsiniz.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+GET claim-list:
+https://merchantapi.idefix.com/oms/{vendorId}/claim-list
+* ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+ids	Tekil olarak ilgili iadenin detayını çekmek için claim ID ile istek atılabilir.
+orderNumber	Shipment’in idefix sistemindeki ana sipariş numarasına karşılık gelir.
+claimReason	İlgili reason ID’ye göre oluşturulmuş claim’leri listelemek için kullanılır.
+startDate	Belirli bir tarihten sonraki iadeler için sorgulama yapılabilir. Örnek format: 2022/09/30 23:59:59
+endDate	Belirtilen tarihe kadar olan iadeler için sorgulama yapılabilir. Örnek format: 2022/09/30 23:59:59
+lastUpdatedAt	İadenin durumunun son güncellenme tarihini baz alır. Örnek format: 2022/09/30 23:59:59
+Örnek Servis Cevabı:
+{
+    "totalCount": 2,
+    "itemCount": 2,
+    "pageCount": 1,
+    "currentPage": 1,
+    "limit": 50,
+    "items": [
+        {
+            "customerId": 104710723,
+            "customerName": "Derya Kaya",
+            "vendorTitle": "idefix",
+            "createdAt": "2023-05-17T18:56:29+03:00",
+            "orderCreatedAt": "2023-05-03T16:04:12+03:00",
+            "orderNumber": "IDE64525bcc2d1c6",
+            "id": 241,
+            "cargoTrackingUrl": null,
+            "cargoTrackingNumber": null,
+            "cargoKey": "CLMY241",
+            "cargoCompanyId": 74,
+            "cargoCompanyName": "Yurtiçi Kargo",
+            "cargoProfileId": 1,
+            "cargoProfileName": "Yurtiçi Kargo Platform Öder",
+            "cargoTypeId": 3,
+            "cargoTypeName": "return",
+            "items": [
+                {
+                    "productPrice": 10.05,
+                    "vendorPrice": 10.05,
+                    "discountedTotalPrice": 10.05,
+                    "platformDiscount": 0,
+                    "vendorDiscount": 0,
+                    "totalDiscount": null,
+                    "interestPrice": 0,
+                    "vat": 0,
+                    "totalPrice": 10.05,
+                    "productName": "Tezus",
+                    "productImage": "https://static.idefix.net/resize/{size}product/263195/tezus-64372d7596f8c.jpg",
+                    "productCode": "IDE-1681337716963",
+                    "barcode": "9786057903372",
+                    "erpId": "1819603001",
+                    "slug": "tezus-p-263195",
+                    "note": null,
+                    "customerNote": null,
+                    "vendorNote": "müşteri ürünü fazla göndermiş",
+                    "platformReason": null,
+                    "platformReasonId": null,
+                    "vendorReason": "Teslim edilemeyen gönderi",
+                    "vendorReasonId": 3015,
+                    "customerReason": null,
+                    "customerReasonId": null,
+                    "stateUpdatedAt": "2023-05-17T18:57:22+03:00",
+                    "declineRequestNote": null,
+                    "declineRequestReasonName": null,
+                    "state": "approved",
+                    "stateName": "İade onaylandı",
+                    "orderLineId": 10000375,
+                    "id": 262,
+                    "autoApproveDate": "2023-05-19T23:59:59+03:00",
+                    "isAutoApprove": false,
+                    "approvedAt": "2023-05-17T18:57:22+03:00",
+                    "isControversial": false
+                }
+            ]
+        },
+        {
+            "customerId": 104710723,
+            "customerName": "Derya Kaya",
+            "vendorTitle": "idefix",
+            "createdAt": "2023-05-16T09:39:26+03:00",
+            "orderCreatedAt": "2023-05-03T16:04:12+03:00",
+            "orderNumber": "IDE64525bcc2d1c6",
+            "id": 232,
+            "cargoTrackingUrl": "https://www.yurticikargo.com/tr/online-servisler/gonderi-sorgula?code=91687272748",
+            "cargoTrackingNumber": "916872729748",
+            "cargoKey": "CLMY232",
+            "cargoCompanyId": 74,
+            "cargoCompanyName": "Yurtiçi Kargo",
+            "cargoProfileId": 1,
+            "cargoProfileName": "Yurtiçi Kargo Platform Öder",
+            "cargoTypeId": 3,
+            "cargoTypeName": "return",
+            "items": [
+                {
+                    "productPrice": 10.9,
+                    "vendorPrice": 10.9,
+                    "discountedTotalPrice": 10.9,
+                    "platformDiscount": 0,
+                    "vendorDiscount": 0,
+                    "totalDiscount": null,
+                    "interestPrice": 0,
+                    "vat": 0,
+                    "totalPrice": 10.9,
+                    "productName": "Köy Hayatından Sahneler",
+                    "productImage": "https://static.idefix.net/resize/{size}product/214882/koy-hayatindan-sahneler-6436b3c3a468e.jpg",
+                    "productCode": "IDE-1681306562203",
+                    "barcode": "9786050923131",
+                    "erpId": "1582829001",
+                    "slug": "koy-hayatindan-sahneler-p-214882",
+                    "note": null,
+                    "customerNote": null,
+                    "vendorNote": null,
+                    "platformReason": null,
+                    "platformReasonId": null,
+                    "vendorReason": null,
+                    "vendorReasonId": null,
+                    "customerReason": "Modelini beğenmedim",
+                    "customerReasonId": 6251,
+                    "stateUpdatedAt": "2023-05-17T17:05:42+03:00",
+                    "declineRequestNote": null,
+                    "declineRequestReasonName": null,
+                    "state": "approved",
+                    "stateName": "İade onaylandı",
+                    "orderLineId": 10000376,
+                    "id": 252,
+                    "autoApproveDate": "2023-08-02T23:59:59+03:00",
+                    "isAutoApprove": false,
+                    "approvedAt": "2023-05-17T17:05:42+03:00",
+                    "isControversial": false
+                }
+            ]
+        }
+    ]
+}
+Response Parametreleri
+Parametre Ad	Açıklama
+totalDiscount	Item bazında platform ve vendor indirimlerinin toplam tutarıdır.
+discountedTotalPrice	İndirimler düşüldükten sonraki toplam item tutarıdır.
+platformDiscount	Platform tarafından uygulanan toplam indirim tutarıdır.
+vendorDiscount	Vendor tarafından uygulanan toplam indirim tutarıdır.
+Shipment Statüleri
+Parametre Ad	Açıklama
+ready	İadesi oluşan shipment’in ilk statüsüdür. Müşteri önyüzden iade butonuna bastığında oluşur.
+in_cargo	İade talebi oluşturulduktan sonra müşteri ürünü kargoya teslim eder. Sistem kargodan ürünün durumunu sorgular. Ürünün kargoya ulaştığını bildiren statüdür.
+waiting_vendor_approve	İade talebi oluşan shipment’in ilgili satıcının deposuna ulaştığını bildiren statüdür. Bu statüde satıcının iadeyi inceleyerek onay veya red talebinde bulunması beklenir.
+approved	Gelen iadenin onaylandığını bildiren statüdür.
+decline	Gelen iadenin reddedildiğini bildiren statüdür.
+vendor_decline_request	Gelen iadenin satıcı tarafından incelendiğini ve red talebi statüsüne gönderildiğini bildiren statüdür. Bu statüde iade red sebebi idefix sistemi tarafından kontrol edilir.
+
+
+
+İade Talep Sebep Listesi
+
+İade Talep Sebep Listesi(claim-reasons)
+claim-create servisine yapılacak isteklerde gönderilecek iade sebep bilgileri ve claim-listten dönen iade talep sebeplerine ilişkin ID değerleri bu servis kullanılarak alınacaktır.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+GET claim-reasons
+https://merchantapi.idefix.com/oms/{vendorID}/claim-reasons
+Örnek Servis Cevabı:
+[
+  {
+    "id": 3024,
+    "name": "Teknik Servis Desteği Gerekiyor",
+    "type": "platform"
+  },
+  {
+    "id": 3025,
+    "name": "Kullanılmış Ürün Sebepli Red",
+    "type": "platform"
+  },
+  {
+    "id": 3026,
+    "name": "Hijyenik Sebepli Red",
+    "type": "platform"
+  },
+  {
+    "id": 6004,
+    "name": "Daha iyi bir fiyat mevcut",
+    "type": "customer"
+  }
+]
+
+İade Talep Onaylama
+
+İade Talep Onayı(claim-approve)
+İdefix sisteminde iadesi oluşmuş ve deponuza teslim edilmiş iade taleplerini bu servis yardımıyla onaylayabilirsiniz.
+
+claimId ve claimLineIds bilgilerine claim-list servisini kullanarak erişebilirsiniz.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST claim-approve:
+https://merchantapi.idefix.com/oms/{vendorId}/{claimId}/claim-approve
+*ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+claimId *	İşlem yapılacak ilgili iade talep id si
+claimLineIds *	İadesi onaylanacak kalemin id si
+Örnek Servis İsteği:
+{
+  "claimLineIds": [
+    "14",
+    "13"
+  ]
+}
+
+İade Ret Sebep Listesi
+
+İade Red Talebi Sebep Listesi(claim-decline-reasons)
+claim-decline-request servisine yapılacak isteklerde gönderilecek iade red sebep bilgilerine ilişkin ID değerleri bu servis kullanılarak alınacaktır.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+GET return;
+https://merchantapi.idefix.com/oms/claim-decline-reasons
+Örnek Servis Cevabı:
+[
+    {
+        "id": 1,
+        "name": "Hatalı Ürün",
+        "description": null,
+        "createdAt": "2022-09-06T18:03:42+03:00",
+        "updatedAt": "2022-09-06T18:03:44+03:00",
+        "deletedAt": null
+    }
+]
+
+İade Ret Talep Bildirimi
+
+İade Red Talebi Oluşturma(claim-decline-request)
+İdefix sisteminde iadesi oluşmuş ve deponuza teslim edilmiş iade taleplerini inceledikten sonra bu servis ile iade red talebi oluşturabilirsiniz.
+
+claimId ve claimLineIds bilgilerine claim-list servisini kullanarak erişebilirsiniz.
+claimDeclineReasonId bilgilerine ise claim-decline-reasons servisini kullanarak erişebilirsiniz.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST claim-decline-request:
+https://merchantapi.idefix.com/oms/{vendorId}/{claimId}/claim-decline-request
+* ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+claimId*	İşlem yapılacak ilgili iade talep ID bilgisidir.
+id*	İadesi onaylanacak kalemin ID bilgisidir.
+description	Red talebi yapılan iade için satıcının oluşturduğu açıklamadır.
+images	İade sürecine ait görsel bilgileridir.
+claimDeclineReasonId*	İadenin reddedilme sebep ID bilgisidir. Bu bilgilere claim-decline-reasons servisinden erişebilirsiniz.
+Örnek Servis İsteği:
+{
+  "claimLines": [
+    {
+      "id": 0,
+      "claimDeclineReasonId": 0,
+      "description": "string",
+      "images": [
+        "string"
+      ]
+    }
+  ]
+}
+
+İade Satıcıya Teslim Edildi Bildirimi
+
+İade Satıcıya Ulaştı Bildirimi(claim-delivered-to-vendor)
+İdefix sisteminde iadesi oluşmuş ve deponuza teslim edilmiş iadeleriniz claim-create ile oluşturduktan sonra onay ya da red yapmadan önce çalıştırmanız gereken servistir. Bu işlem sonrasında ilgili iadeniz için onay ya da red yapabilirsiniz.
+
+claimLineIds bilgilerine claim-list servisini kullanarak erişebilirsiniz.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST claim-delivered-to-vendor
+https://merchantapi.idefix.com/oms/{vendorId}/{claimId}/claim-delivered-to-vendor
+*ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+claimLineIds *	İşlem yapılacak kalemin id si
+Örnek Servis İsteği:
+{
+  "claimLineIds": [
+    0
+  ]
+}
+
+İade Oluşturma
+
+İade Talebi Oluşturma (claim-create)
+Müşteriler tarafından iade kodu alınmadan deponuza iletilen siparişleriniz için iade talebi oluşturmak için kullanabilirsiniz. Bu servis ile iade oluşturduktan sonra iade listesi servisi ile çekebilirsiniz.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+POST claim-create:
+https://merchantapi.idefix.com/oms/{vendorId}/claim-create
+* ile belirtilen alanlar zorunlu alanlardır.
+
+Parametre Ad	Açıklama
+customerId*	Siparişi veren müşterinin idefix sistemindeki ID bilgisidir.
+vendorCargoProfileId	İade talebinde kullanılan kargo profil ID bilgisidir.
+orderNumber*	Siparişin idefix sistemindeki ana sipariş numarasına karşılık gelir.
+vendorCargoCompanyId*	Çalıştığınız kargo firmasının ID bilgisidir.
+reasonId*	İade sebebinin ID bilgisidir. Bu bilgiye claim-reasons servisinden erişebilirsiniz.
+orderLineId*	İade edilecek kalemin ID bilgisidir.
+customerNote	Müşterinin yazdığı not alanıdır. Bu alanı dilerseniz “İade kodu olmadan gelen iade” gibi bir metin ile besleyebilirsiniz.
+images	İade talebine ilişkin görsel URL’leridir.
+claimType	İadenin gönderim türüdür (evden, kargo şubesinden).
+Örnek Servis İsteği:
+{
+  "customerId": 4545,
+  "vendorCargoProfileId": 5,
+  "items": [
+    {
+      "reasonId": 2,
+      "orderLineId": 1,
+      "customerNote": "Musteri urunu begenmedigini iletti"
+    }
+  ],
+  "images": [
+    "https://gorsel.jpg"
+  ],
+  "claimType": "Kargo Subesinden"
+}
+
+İptal Sebep Listesi
+
+İptal Sebep Listesi(reasons/cancel)
+İdefix sisteminde müşteriler tarafından oluşturulmuş iptallerin sebeplerine ait Id listesidir.
+
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+GET cancel
+https://merchantapi.idefix.com/oms/{vendorId}/reasons/cancel
+Örnek Servis Cevabı:
+[
+    {
+        "id": 607,
+        "name": "Teslimat tarihi gecikti",
+        "reasonType": "cancel",
+        "description": "Doğal afet, hastalık, cenaze vb. durumlarda seçilmeli.",
+        "createdAt": "2022-09-05T18:35:14+03:00",
+        "updatedAt": "2022-09-05T18:35:34+03:00",
+        "deletedAt": null
+    },
+    {
+        "id": 609,
+        "name": "Yanlış kartla ödeme yaptım",
+        "reasonType": "cancel",
+        "description": "Yanlış kart ile ödeme yapıldığında iptal etmek için seçelir.",
+        "createdAt": "2022-09-05T18:35:14+03:00",
+        "updatedAt": "2022-09-05T18:35:34+03:00",
+        "deletedAt": null
+    },
+    {
+        "id": 610,
+        "name": "Fiyat sebebiyle vazgeçtim",
+        "reasonType": "cancel",
+        "description": "Ürün fiyat sebebi işe iptal edilmek istenildiğinde seçilir.",
+        "createdAt": "2022-09-05T18:35:14+03:00",
+        "updatedAt": "2022-09-05T18:35:34+03:00",
+        "deletedAt": null
+    },
+    {
+        "id": 611,
+        "name": "Adreste bulunmayacağım",
+        "reasonType": "cancel",
+        "description": "Adres değişikliği durumlarında seçilmeli.",
+        "createdAt": "2022-09-05T18:35:14+03:00",
+        "updatedAt": "2022-09-05T18:35:34+03:00",
+        "deletedAt": null
+    },
+    {
+        "id": 608,
+        "name": "Vazgeçtim",
+        "reasonType": "cancel",
+        "description": "Ürünü yanlışlıkla aldım",
+        "createdAt": "2022-09-05T18:35:14+03:00",
+        "updatedAt": "2022-09-05T18:35:34+03:00",
+        "deletedAt": null
+    }
+]
+
+Müşteri Sorularını Çekme
+
+Müşteri Sorularının Alınması
+idefix üzerinden müşteriler tarafından satıcılarımıza yöneltilen tüm soruların çekilmesi için bu servis metodu kullanılmalıdır.
+
+GET question-filter
+https://merchantapi.idefix.com/pim/vendor/{vendor}/question/filter
+Parametre Adı	Açıklama
+page	Sayfa numarası (Varsayılan: 1)
+limit	Sayfa başına kayıt sayısı (maksimum 50) (Varsayılan: 10)
+barcode	Belirli barcode değerine ait olan sorular için kullanılır
+startDate	Belirtilen tarihten sonraki soruları getirir. Timestamp (milisaniye) formatında gönderilmelidir.
+endDate	Belirtilen tarihe kadar olan soruları getirir. Timestamp (milisaniye) formatında gönderilmelidir.
+sort	Sıralama yönü (Geçerli değerler: newest, oldest – Varsayılan: newest)
+vendor *	Zorunlu parametredir. Satıcı bilgisini ifade eder.
+vendor her satıcının unique bir tanımlayıcısıdır. Zorunlu bir alandır.
+Örnek Servis Cevabı
+        {
+            "id": 699,
+            "product": "PIMFix Test Ürünü",
+            "question": "Ürün boyutu nedir",
+            "productQuestionAnswer": [],
+            "readAt": null,
+            "publishedAt": null,
+            "createdAt": "2025-05-20T16:35:27+03:00",
+            "isArchived": false,
+            "customerId": 200000718,
+            "customerName": "Test İdefix",
+            "showMyName": true
+        },
+        {
+            "id": 698,
+            "product": "Şuur ve Nazariyat",
+            "question": "ürün ne zaman gönderilir",
+            "productQuestionAnswer": [
+                {
+                    "id": 537,
+                    "answerBody": "soru-cevap test",
+                    "likeCount": 0,
+                    "dislikeCount": 0,
+                    "bannedWords": null
+                }
+            ],
+            "readAt": "2025-05-28T10:50:40+03:00",
+            "publishedAt": null,
+            "createdAt": "2025-05-20T16:35:21+03:00",
+            "isArchived": false,
+            "customerId": 200001377,
+            "customerName": "F***** Z*****",
+            "showMyName": false
+        },
+        {
+            "id": 697,
+            "product": "PIM Test Ürünü”
+            "question": "Ürün özellikleri nedir",
+            "productQuestionAnswer": [],
+            "readAt": null,
+            "publishedAt": null,
+            "createdAt": "2025-05-20T16:34:59+03:00",
+            "isArchived": false,
+            "customerId": 200000718,
+            "customerName": "Test Customer B*****",
+            "showMyName": true
+        }
+    ]
+}
+
+Ürün Sorusu Çekme
+
+Ürün Sorusunu Çekme
+Satıcıya ait ürün sorusunu id bazında filtrelemek için bu servis metodu kullanılmalıdır.
+
+GET vendor-question
+https://merchantapi.idefix.com/pim/vendor/{vendor}/question/{questionId}
+Parametre Adı	Açıklama
+vendor *	Zorunlu parametredir. Satıcı bilgisini ifade eder.
+questionId *	Zorunlu parametredir. Sorunun ID bilgisini ifade eder.
+Örnek Servis Cevabı:
+{
+    "totalCount": 1,
+    "itemCount": 1,
+    "pageCount": 1,
+    "currentPage": 1,
+    "limit": 10,
+    "items": [
+        {
+            "id": 707,
+            "product": "Ahşap Masa",
+            "question": "Ürün boyutları nedir ",
+            "productQuestionAnswer": [],
+            "readAt": null,
+            "publishedAt": null,
+            "createdAt": "2025-05-22T13:56:14+03:00",
+            "isArchived": false,
+            "customerId": 200000718,
+            "customerName": "İdefix te*****",
+            "showMyName": true
+        }
+    ]
+}
+
+Müşteri Sorularını Cevaplama
+
+Müşteri Sorularının Cevaplanması
+Ürün sorularının cevaplanması için bu servis metodu kullanılmalıdır.
+
+POST question-answer
+https://merchantapi.idefix.com/pim/vendor/{vendor}/question/{questionId}/answer
+Parametre Adı	Açıklama
+vendor *	Zorunlu parametredir. Satıcı bilgisini belirtir.
+questionId *	Zorunlu parametredir. Cevaplanacak sorunun ID bilgisidir.
+Örnek Servis İsteği:
+{
+  "answer_body": "test-soru-cevap"
+}
+Örnek Servis Cevabı:
+{
+    "id": 539,
+    "answerBody": "test-soru-cevap",
+    "likeCount": 0,
+    "dislikeCount": 0,
+    "bannedWords": null
+}
+
+Sipariş Sorularını Çekme
+
+Sipariş Sorularının Alınması
+Belirli bir satıcıya ait sipariş sorularını filtreleyerek listelemek için bu servis kullanılır.
+
+GET order-question/filter
+https://merchantapi.idefix.com/pim/vendor/{vendorID}/order-question/filter
+Parametre Adı	Açıklama
+page	Sayfa numarası (Varsayılan: 1)
+limit	Sayfa başına kayıt sayısı (Varsayılan: 10)
+orderNumber	Belirli siparişe ait olan sorular için kullanılır
+startDate	Belirtilen tarihten sonraki soruları getirir. Timestamp (milisaniye) formatında gönderilmelidir.
+endDate	Belirtilen tarihe kadar olan soruları getirir. Timestamp (milisaniye) formatında gönderilmelidir.
+sort	Sıralama yönü (Geçerli değerler: newest, oldest – Varsayılan: newest)
+status	Soru durumu. Alabileceği değerler: -- answered, unanswered.
+shipmentId	Belirli sevkiyat ID'sine ait sorular için.
+vendor *	Zorunlu parametredir. Satıcı bilgisini ifade eder.
+Örnek Servis Cevabı
+     {
+    "totalCount": 1,
+    "itemCount": 1,
+    "pageCount": 1,
+    "currentPage": 1,
+    "limit": 1,
+    "items": [
+        {
+            "id": 342323,
+            "orderId": 5000007,
+            "orderNumber": "IDE6a333933d2aa8",
+            "orderDate": "2026-06-17T23:53:07+03:00",
+            "reason": "Genel Soru",
+            "customerId": 12111111,
+            "customerName": "idefix Test",
+            "shipmentId": 63033450,
+            "productCode": "IDE-1769517731151",
+            "lastMessage": "Siparişiniz yarın kargoya verilecektir.",
+            "lastMessageDate": "2026-06-22T10:42:06+03:00",
+            "createdAt": "2026-06-18T08:24:52+03:00",
+            "isReadMessage": true
+        }
+    ]
+}
+
+Sipariş Sorusu Filtreleme
+
+Sipariş Sorusu Filtreleme
+Belirli bir satıcıya ait, ID'si verilen tekil sipariş sorusunu getirmek için bu servis kullanılır.
+
+GET order-question/{questionId}
+https://merchantapi.idefix.com/pim/vendor/{vendorID}/order-question/{questionId}
+Parametre Adı	Açıklama
+vendor*	Satıcı bilgisi.
+questionId	Getirilecek sipariş sorusunun ID'si.
+Örnek Servis Cevabı
+        {
+    "totalCount": 1,
+    "itemCount": 1,
+    "pageCount": 1,
+    "currentPage": 1,
+    "limit": 10,
+    "items": [
+        {
+            "id": 111222,
+            "orderId": 5055555,
+            "orderNumber": "IDE6a311933d2aa8",
+            "orderDate": "2026-06-17T23:53:07+03:00",
+            "reason": "Genel Soru",
+            "customerId": 121000000,
+            "customerName": "idefix kullanıcı",
+            "shipmentId": 63033000,
+            "productCode": "IDE-1119517739251",
+            "lastMessage": "Siparişiniz kargoya verilmiştir.",
+            "lastMessageDate": "2026-06-22T10:42:06+03:00",
+            "createdAt": "2026-06-18T08:24:52+03:00",
+            "isReadMessage": true
+        }
+    ]
+}
+
+Sipariş Sorularını Cevaplama
+
+Sipariş Sorularının Cevaplaması
+Belirli bir satıcıya ait, ID'si verilen sipariş sorusuna cevap oluşturmak için bu servis kullanılır.
+
+POST order-question/{questionId}/answer
+https://merchantapi.idefix.com/pim/vendor/{vendorID}/order-question/{questionId}/answer
+Parametre Adı	Açıklama
+vendor *	Zorunlu parametredir. Satıcı bilgisini belirtir.
+questionId *	Zorunlu parametredir. Cevaplanacak sorunun ID bilgisidir.
+Örnek Servis İsteği:
+{
+  "answer_body": "string",
+  "type": 1
+}
+
+https://developer.idefix.com/ üzerinde tüm api dökümanlarına erişebilirsiniz.
+
+
