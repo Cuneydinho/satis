@@ -12,7 +12,7 @@ Bu projede yer alan tüm geliştirmeler aşağıdaki kurallara harfiyen uymalıd
 
 ## 3. Bağımlılık ve Dosya Yönetimi
 - **Eksik Dosya Kontrolü:** Kodlama sırasında mevcut dosyanın, projede yer alan başka bir sınıf, fonksiyon veya konfigürasyon dosyasına bağımlılığı varsa ve o dosya elinizde yoksa, tahmini kod yazmak yerine eksik dosya doğrudan talep edilmelidir.
-- **Modüler Yapı:** Her pazaryeri (örn: TrendyolAPI, AmazonAPI) kendi sınıfı (class) içinde modüler olarak tasarlanmalıdır.
+- **Modüler Yapı:** Her pazaryeri (örn: TrendyolAPI, AmazonAPI) kendi sınıfı (class) içinde modüler olarak tasarlanmalıdır. Her bir pazaryeri için ayrı ayrı php dosyaları oluşturalım ki, dosya boyutları küçük ve hafif olsun. Ortaklaştırman gereken dosyalar varsa bunları ortak yapmak tekrar tekrar aynı kodları çalıştırmaktansa daha hızlandırır bizi, bu yüzden bunu proje başında düşün ve öyle hareket et.
 
 ## 4. Hata Yönetimi (Error Handling)
 - API entegrasyonlarında dönen hatalar, kullanıcıya doğrudan gösterilmemeli, merkezi ve live(canlı) bir log sistemine (örn: `hata_loglari` tablosu veya dosyası) kaydedilmelidir.
